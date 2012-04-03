@@ -101,7 +101,7 @@ public class BTMeshService {
         mState = state;
 
         // Give the new state to the Handler so the UI Activity can update
-        mHandler.obtainMessage(BTMesh.MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
+        mHandler.obtainMessage(BTChat.MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
     }
 
     /**
@@ -202,9 +202,9 @@ public class BTMeshService {
         mConnThreads.add(mConnectedThread);
 
         // Send the name of the connected device back to the UI Activity
-        Message msg = mHandler.obtainMessage(BTMesh.MESSAGE_DEVICE_NAME);
+        Message msg = mHandler.obtainMessage(BTChat.MESSAGE_DEVICE_NAME);
         Bundle bundle = new Bundle();
-        bundle.putString(BTMesh.DEVICE_NAME, device.getName());
+        bundle.putString(BTChat.DEVICE_NAME, device.getName());
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
@@ -292,9 +292,9 @@ public class BTMeshService {
     private void connectionLost() {
     	setState(STATE_LISTEN);
         // Send a failure message back to the Activity
-        Message msg = mHandler.obtainMessage(BTMesh.MESSAGE_TOAST);
+        Message msg = mHandler.obtainMessage(BTChat.MESSAGE_TOAST);
         Bundle bundle = new Bundle();
-        bundle.putString(BTMesh.TOAST, "Device connection was lost");
+        bundle.putString(BTChat.TOAST, "Device connection was lost");
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
@@ -320,7 +320,7 @@ public class BTMeshService {
     		BluetoothSocket socket = null;
     		try {
     			for (int i = 0; i < 7; i++) {
-    				serverSocket = mAdapter.listenUsingRfcommWithServiceRecord(NAME, mUuids.get(i));
+    				serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(i));
     				socket = serverSocket.accept();
     				if (socket != null) {
     					String address = socket.getRemoteDevice().getAddress();
@@ -364,7 +364,7 @@ public class BTMeshService {
             // Get a BluetoothSocket for a connection with the
             // given BluetoothDevice
             try {
-            	tmp = device.createRfcommSocketToServiceRecord(currUuid);
+            	tmp = device.createInsecureRfcommSocketToServiceRecord(currUuid);
             } catch (IOException e) {
                 Log.e(TAG, "create() failed", e);
             }
@@ -454,7 +454,7 @@ public class BTMeshService {
                     bytes = mmInStream.read(buffer);
 
                     // Send the obtained bytes to the UI Activity
-                    mHandler.obtainMessage(BTMesh.MESSAGE_READ, bytes, -1, buffer)
+                    mHandler.obtainMessage(BTChat.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
@@ -473,7 +473,7 @@ public class BTMeshService {
                 mmOutStream.write(buffer);
 
                 // Share the sent message back to the UI Activity
-                mHandler.obtainMessage(BTMesh.MESSAGE_WRITE, -1, -1, buffer)
+                mHandler.obtainMessage(BTChat.MESSAGE_WRITE, -1, -1, buffer)
                         .sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "Exception during write", e);

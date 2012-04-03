@@ -25,7 +25,8 @@
                  android:icon="@drawable/app_icon" >
         <activity android:name=".BTMesh"
                   android:label="@string/app_name"
-                  android:configChanges="orientation|keyboardHidden">
+                  android:configChanges="orientation|keyboardHidden"
+                  android:theme="@android:style/Theme.NoTitleBar" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -35,5 +36,7 @@
                   android:label="@string/select_device"
                   android:theme="@android:style/Theme.Dialog"
                   android:configChanges="orientation|keyboardHidden" />
+        <activity android:name=".BTChat"></activity>
+        <activity android:name=".BTConnectionManager"></activity>
     </application>
 </manifest>
