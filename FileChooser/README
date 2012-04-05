@@ -1,0 +1,5 @@
+This app shows a list of file and folders. 
+
+Folders can be opened to access their elements
+
+Upon the "click" of a file, a modal pops up and informs you of the file that has been selected
