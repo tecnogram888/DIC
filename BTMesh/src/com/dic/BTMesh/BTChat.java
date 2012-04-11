@@ -61,6 +61,7 @@ public class BTChat extends Activity {
 
     // Key names received from the BluetoothChatService Handler
     public static final String DEVICE_NAME = "device_name";
+    public static final String CONN_ID = "connection_id";
     public static final String TOAST = "toast";
 
     // Intent request codes
@@ -72,9 +73,6 @@ public class BTChat extends Activity {
     private ListView mConversationView;
     private EditText mOutEditText;
     private Button mSendButton;
-
-    // Name of the connected device
-    private String mConnectedDeviceName = null;
     
     //My name
     private String myAdapterName;
@@ -355,27 +353,26 @@ public class BTChat extends Activity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case MESSAGE_STATE_CHANGE:
-                if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+                /*if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
                 switch (msg.arg1) {
                 case BTMeshService.STATE_CONNECTED:
-                    //mTitle.setText(R.string.title_connected_to);
-                    //mTitle.append(mConnectedDeviceName);
+                    BTMesh.mTitle.setText(R.string.title_connected_to);
                     //mConversationArrayAdapter.clear();
                     break;
                 case BTMeshService.STATE_CONNECTING:
-                    //mTitle.setText(R.string.title_connecting);
+                    BTMesh.mTitle.setText(R.string.title_connecting);
                     break;
                 case BTMeshService.STATE_LISTEN:
                 case BTMeshService.STATE_NONE:
-                    //mTitle.setText(R.string.title_not_connected);
+                    BTMesh.mTitle.setText(R.string.title_not_connected);
                     break;
-                }
+                }*/
                 break;
             case MESSAGE_WRITE:
-                byte[] writeBuf = (byte[]) msg.obj;
+                /*byte[] writeBuf = (byte[]) msg.obj;
                 // construct a string from the buffer
                 String writeMessage = new String(writeBuf);
-                //mConversationArrayAdapter.add(mBluetoothAdapter.getName() + ":  " + writeMessage);
+                //mConversationArrayAdapter.add(mBluetoothAdapter.getName() + ":  " + writeMessage);*/
                 break;
             case MESSAGE_READ:
                 byte[] readBuf = (byte[]) msg.obj;
@@ -388,9 +385,9 @@ public class BTChat extends Activity {
                 break;
             case MESSAGE_DEVICE_NAME:
                 // save the connected device's name
-                mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
+                /*mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
                 Toast.makeText(getApplicationContext(), "Connected to "
-                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();*/
                 break;
             case MESSAGE_TOAST:
                 Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),

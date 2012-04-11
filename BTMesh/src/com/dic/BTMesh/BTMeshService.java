@@ -56,10 +56,11 @@ public class BTMeshService {
     private AcceptThread mAcceptThread;
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
+    private int mConnectionState;
     private int mState;
     
-    private ArrayList<String> mDeviceAddresses;
     private ArrayList<ConnectedThread> mConnThreads;
+    private ArrayList<String> mDeviceAddresses;
     private ArrayList<BluetoothSocket> mSockets;
     
     private ArrayList<UUID> mUuids;
@@ -69,7 +70,7 @@ public class BTMeshService {
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
-
+	
     /**
      * Constructor. Prepares a new BluetoothChat session.
      * @param context  The UI Activity Context

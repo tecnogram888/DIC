@@ -1,19 +1,35 @@
 package com.dic.BTMesh;
 
+import java.util.ArrayList;
+
 import android.app.TabActivity;
+import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.view.Window;
 import android.widget.TabHost;
+import android.widget.TextView;
 
 public class BTMesh extends TabActivity {
+    private static final boolean D = true;
+    
+    //shared values
+    public static TextView mTitle;
 
-	/** Called when the activity is first created. */
+    /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    super.onCreate(savedInstanceState);
-	    setContentView(R.layout.main);
+        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+        
+	    setContentView(R.layout.main);	    
 
+        getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
+        mTitle = (TextView) findViewById(R.id.title_left_text);
+        mTitle.setText(R.string.app_name);
+        mTitle = (TextView) findViewById(R.id.title_right_text);
+        
 	    Resources res = getResources(); // Resource object to get Drawables
 	    TabHost tabHost = getTabHost();  // The activity TabHost
 	    TabHost.TabSpec spec;  // Resusable TabSpec for each tab
@@ -38,5 +54,6 @@ public class BTMesh extends TabActivity {
 
 	    tabHost.setCurrentTab(0);
 	}
+	
 
 }
