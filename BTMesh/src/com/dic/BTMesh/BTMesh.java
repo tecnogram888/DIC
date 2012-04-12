@@ -3,6 +3,7 @@ package com.dic.BTMesh;
 import java.util.ArrayList;
 
 import android.app.TabActivity;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -15,17 +16,21 @@ public class BTMesh extends TabActivity {
     private static final boolean D = true;
     
     //shared values
+    // Local Bluetooth adapter
+    public static BluetoothAdapter mBluetoothAdapter = null;
     public static TextView mTitle;
+    public static ArrayList<String> mDeviceNames;
 
     /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-	    super.onCreate(savedInstanceState);
+	    // Visual Things
+		super.onCreate(savedInstanceState);
+	    
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-        
 	    setContentView(R.layout.main);	    
-
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
+        
         mTitle = (TextView) findViewById(R.id.title_left_text);
         mTitle.setText(R.string.app_name);
         mTitle = (TextView) findViewById(R.id.title_right_text);
@@ -53,6 +58,13 @@ public class BTMesh extends TabActivity {
 
 
 	    tabHost.setCurrentTab(0);
+	    
+	    // Connection Things
+	    mDeviceNames = new ArrayList<String>();
+	    for (int i = 0; i < 7; i++) {
+	    	mDeviceNames.add(null);
+	    }
+	    
 	}
 	
 

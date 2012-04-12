@@ -36,6 +36,7 @@
                   android:theme="@android:style/Theme.Dialog"
                   android:configChanges="orientation|keyboardHidden" />
         <activity android:name=".BTChat"></activity>
-        <activity android:name=".BTConnectionManager"></activity>
+        <activity android:name=".BTConnectionManager">
+        </activity>
     </application>
 </manifest>

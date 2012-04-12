@@ -83,8 +83,6 @@ public class BTChat extends Activity {
     private ArrayAdapter<String> mConversationArrayAdapter;
     // String buffer for outgoing messages
     private StringBuffer mOutStringBuffer;
-    // Local Bluetooth adapter
-    private BluetoothAdapter mBluetoothAdapter = null;
     // Member object for the chat services
     private BTMeshService mChatService = null;
 
@@ -106,10 +104,10 @@ public class BTChat extends Activity {
         //mTitle = (TextView) findViewById(R.id.title_right_text);
         
         // Get local Bluetooth adapter
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        myAdapterName = mBluetoothAdapter.getName();
+        BTMesh.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        myAdapterName = BTMesh.mBluetoothAdapter.getName();
         // If the adapter is null, then Bluetooth is not supported
-        if (mBluetoothAdapter == null) {
+        if (BTMesh.mBluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -124,7 +122,7 @@ public class BTChat extends Activity {
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!BTMesh.mBluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         // Otherwise, setup the chat session
@@ -204,7 +202,7 @@ public class BTChat extends Activity {
 
     private void ensureDiscoverable() {
         if(D) Log.d(TAG, "ensure discoverable");
-        if (mBluetoothAdapter.getScanMode() !=
+        if (BTMesh.mBluetoothAdapter.getScanMode() !=
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
@@ -405,7 +403,7 @@ public class BTChat extends Activity {
             if (resultCode == Activity.RESULT_OK) {
             	String address = data.getExtras()
             						.getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+                BluetoothDevice device = BTMesh.mBluetoothAdapter.getRemoteDevice(address);
                 mChatService.connect(device);
             }
             break;
@@ -428,11 +426,11 @@ public class BTChat extends Activity {
         String address = data.getExtras()
             .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
         // Get the BLuetoothDevice object
-        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        BluetoothDevice device = BTMesh.mBluetoothAdapter.getRemoteDevice(address);
         // Attempt to connect to the device
         mChatService.connect(device);
     }
-
+/*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -456,5 +454,5 @@ public class BTChat extends Activity {
         }
         return false;
     }
-
+*/
 }
