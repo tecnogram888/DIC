@@ -4,7 +4,7 @@ import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.os.Handler;
 
-class BTMeshState extends Application {
+public class BTMeshState extends Application {
 	
   private BTMeshService mService;
   private BluetoothAdapter mBluetoothAdapter = null;

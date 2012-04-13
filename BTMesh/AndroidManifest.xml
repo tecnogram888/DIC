@@ -17,11 +17,11 @@
       package="com.dic.BTMesh"
       android:versionCode="1"
       android:versionName="1.0">
-    <uses-sdk minSdkVersion="6" />
+    <uses-sdk android:minSdkVersion="6" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-
-    <application android:label="@string/app_name"
+    <application android:name=".BTMeshState"
+                 android:label="@string/app_name"
                  android:icon="@drawable/app_icon" >
         <activity android:name=".BTMesh"
                   android:label="@string/app_name"
@@ -35,7 +35,11 @@
                   android:label="@string/select_device"
                   android:theme="@android:style/Theme.Dialog"
                   android:configChanges="orientation|keyboardHidden" />
-        <activity android:name=".BTChat"></activity>
+        <activity android:name=".BTChat">
+            <intent-filter>
+                <action android:name="com.dic.BTMesh.addmessages" />
+            </intent-filter>
+        </activity>
         <activity android:name=".BTConnectionManager">
         </activity>
     </application>

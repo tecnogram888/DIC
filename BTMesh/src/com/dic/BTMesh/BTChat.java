@@ -21,16 +21,13 @@ import java.util.Date;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
@@ -83,14 +80,17 @@ public class BTChat extends Activity {
     private StringBuffer mOutStringBuffer;
     
     private BTMeshState BTMState;
+    private BTChatListener BTMListener;
+    private boolean listenerRegistered = false;
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(D) Log.e(TAG, "+++ ON CREATE +++");
+        if(D) Log.e(TAG, "+++ BTChat CREATE +++");
         
 		BTMState = ((BTMeshState)getApplicationContext());
+		BTMListener = new BTChatListener();
         
         // Set up the window layout
         //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
@@ -99,19 +99,8 @@ public class BTChat extends Activity {
         
         // Get local Bluetooth adapter
         myAdapterName = BTMState.getBluetoothAdapter().getName();
-
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        setupChat();
-    }
-
-
-    private void setupChat() {
-        Log.d(TAG, "setupChat()");
-
+        
+        
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
         mConversationArrayFull = new ArrayAdapter<BTMessage>(this, R.layout.message);
@@ -140,22 +129,39 @@ public class BTChat extends Activity {
         mOutStringBuffer = new StringBuffer("");
     }
 
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(D) Log.e(TAG, "+++ BTChat Resume +++");
+
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.addmessages"));
+            listenerRegistered = true;
+        }
+    }
+
+
     @Override
     public synchronized void onPause() {
         super.onPause();
-        if(D) Log.e(TAG, "- ON PAUSE -");
+        if(D) Log.e(TAG, "- BTChat PAUSE -");
+        if (listenerRegistered) {
+            unregisterReceiver(BTMListener);
+            listenerRegistered = false;
+        }
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if(D) Log.e(TAG, "-- ON STOP --");
+        if(D) Log.e(TAG, "-- BTChat STOP --");
     }
 
 
 
     private void ensureDiscoverable() {
-        if(D) Log.d(TAG, "ensure discoverable");
+        if(D) Log.d(TAG, "BTChat ensure discoverable");
         if (BTMState.getBluetoothAdapter().getScanMode() !=
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
@@ -165,6 +171,7 @@ public class BTChat extends Activity {
     }
     
     private void addMessagesToConvo(String m) {
+        if(D) Log.d(TAG, "BTChat adding Messages");
     	int authorInd = m.indexOf("@author", 0);
     	int timestampInd = m.indexOf("@timestamp", 0);
     	int textInd = m.indexOf("@text", 0);
@@ -228,6 +235,7 @@ public class BTChat extends Activity {
     }
 
     private String unsentConvoToString() {
+        if(D) Log.d(TAG, "BTChat unsentConvoToString");
     	String flat = "";
     	for (int i = 0; i < mConversationArrayUnsent.getCount(); i++){
     		BTMessage m = mConversationArrayUnsent.getItem(i);
@@ -241,6 +249,7 @@ public class BTChat extends Activity {
      * @param message  A string of text to send.
      */
     private void sendMessage(String message) {
+        if(D) Log.d(TAG, "BTChat sendMessage");
         /*// Check that we're actually connected before trying anything
         if (mChatService.getState() != BTMeshService.STATE_CONNECTED) {
             Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
@@ -281,6 +290,7 @@ public class BTChat extends Activity {
     }
     
     private void sendData(){
+        if(D) Log.d(TAG, "BTChat sendData");
     	byte[] send = unsentConvoToString().getBytes();
     	BTMState.getService().write(send);
     }
@@ -298,6 +308,21 @@ public class BTChat extends Activity {
             return true;
         }
     };
+    
+    // Nested 'listener'
+    protected class BTChatListener extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            if (intent.getAction().equals("com.dic.BTMesh.addmessages")) {
+                if(D) Log.d(TAG, "BTChat received addmessages intent");
+            	String messages = intent.getStringExtra("messages");
+            	addMessagesToConvo(messages);
+                // Do something
+            }
+        }
+    }
 
     // The Handler that gets information back from the BluetoothChatService
     

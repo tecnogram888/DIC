@@ -88,9 +88,9 @@ public class BTConnectionManager extends Activity {
             if (resultCode == Activity.RESULT_OK) {
                 // Bluetooth is now enabled, so set up a chat session
             	// Generalize to set up connection or something
-                setupChat();
             } else {
                 // User did not enable Bluetooth or an error occured
+            	// Do some sort of failure thing, ideally message and quit
                 Log.d(TAG, "BT not enabled");
                 Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
                 finish();

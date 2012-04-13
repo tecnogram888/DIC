@@ -19,9 +19,6 @@ import android.widget.Toast;
 public class BTMesh extends TabActivity {
     private static final String TAG = "BluetoothChat";
     private static final boolean D = true;
-    private BTMeshState state;
-    
-    public static TextView mTitle;    
     
     // Message types sent from the BluetoothMeshService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -33,8 +30,9 @@ public class BTMesh extends TabActivity {
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;    
-    // Member object for the chat services
-
+    
+    private BTMeshState BTMState;
+    public static TextView mTitle;    
 
 
     /** Called when the activity is first created. */
@@ -43,10 +41,10 @@ public class BTMesh extends TabActivity {
 	    // Visual Things
 		super.onCreate(savedInstanceState);
 		
-		state = ((BTMeshState)getApplicationContext());
+		BTMState = ((BTMeshState)getApplicationContext());
         // Initialize the BluetoothMeshService to perform bluetooth connections
-	    state.newService(mHandler);
-	    state.newAdapter();
+	    BTMState.newService(mHandler);
+	    BTMState.newAdapter();
 	    
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
 	    setContentView(R.layout.main);	    
@@ -81,7 +79,7 @@ public class BTMesh extends TabActivity {
 	    tabHost.setCurrentTab(0);
 
         // If the adapter is null, then Bluetooth is not supported
-        if (state.getBluetoothAdapter() == null) {
+        if (BTMState.getBluetoothAdapter() == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -100,7 +98,7 @@ public class BTMesh extends TabActivity {
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
-        if (!state.getBluetoothAdapter().isEnabled()) {
+        if (!BTMState.getBluetoothAdapter().isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         // Otherwise, setup the chat session
@@ -115,11 +113,11 @@ public class BTMesh extends TabActivity {
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (state.getService() != null) {
+        if (BTMState.getService() != null) {
             // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (state.getConnectionState() == BTMeshService.STATE_NONE) {
+            if (BTMState.getConnectionState() == BTMeshService.STATE_NONE) {
               // Start the Bluetooth chat services
-              state.getService().start();
+              BTMState.getService().start();
             }
         }
     }
@@ -127,7 +125,7 @@ public class BTMesh extends TabActivity {
     public void onDestroy() {
         super.onDestroy();
         // Stop the Bluetooth chat services
-        if (state.getService() != null) state.getService().stop();
+        if (BTMState.getService() != null) BTMState.getService().stop();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 	
@@ -163,7 +161,10 @@ public class BTMesh extends TabActivity {
                 String readMessage = new String(readBuf, 0, msg.arg1);
                 if (readMessage.length() > 0 ) {
                     //mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
-                	addMessagesToConvo(readMessage);
+                	Intent i = new Intent();
+                	i.setAction("com.dic.BTMesh.addmessages");
+                	i.putExtra("messages", readMessage);
+                	sendBroadcast(i);
                 }
                 break;
             case MESSAGE_DEVICE_NAME:
