@@ -2,10 +2,15 @@ package com.dic.BTMesh;
 
 import java.util.ArrayList;
 
+import com.dic.BTMesh.BTChat.BTChatListener;
+
 import android.app.TabActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,7 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class BTMesh extends TabActivity {
-    private static final String TAG = "BluetoothChat";
+    private static final String TAG = "BTMesh";
     private static final boolean D = true;
     
     // Message types sent from the BluetoothMeshService Handler
@@ -31,29 +36,42 @@ public class BTMesh extends TabActivity {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 2;    
     
-    private BTMeshState BTMState;
-    public static TextView mTitle;    
 
+    public static TextView mTitle;    
+    
+    private BTMeshState BTMState;
+    
+    private BTMeshListener BTMListener;
+    private boolean listenerRegistered = false;
 
     /** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 	    // Visual Things
 		super.onCreate(savedInstanceState);
-		
-		BTMState = ((BTMeshState)getApplicationContext());
-        // Initialize the BluetoothMeshService to perform bluetooth connections
-	    BTMState.newService(mHandler);
-	    BTMState.newAdapter();
-	    
+	    Resources res = getResources(); // Resource object to get Drawables
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
 	    setContentView(R.layout.main);	    
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
-        
         mTitle = (TextView) findViewById(R.id.title_left_text);
         mTitle.setText(R.string.app_name);
         mTitle = (TextView) findViewById(R.id.title_right_text);
-	    Resources res = getResources(); // Resource object to get Drawables
+        BTMListener = new BTMeshListener();
+        
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updatestatus"));
+            listenerRegistered = true;
+        }
+		
+		BTMState = ((BTMeshState)getApplicationContext());
+	    BTMState.newService(mHandler);
+	    BTMState.newAdapter();
+	    
+
+
+        
+
+
 	    TabHost tabHost = getTabHost();  // The activity TabHost
 	    TabHost.TabSpec spec;  // Resusable TabSpec for each tab
 	    Intent intent;  // Reusable Intent for each tab
@@ -84,6 +102,8 @@ public class BTMesh extends TabActivity {
             finish();
             return;
         }
+        
+        
 
 
         
@@ -120,6 +140,20 @@ public class BTMesh extends TabActivity {
               BTMState.getService().start();
             }
         }
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updatestatus"));
+            listenerRegistered = true;
+        }
+    }
+    
+    @Override
+    public synchronized void onPause() {
+        super.onPause();
+        if(D) Log.e(TAG, "- BTMesh PAUSE -");
+        if (listenerRegistered) {
+            unregisterReceiver(BTMListener);
+            listenerRegistered = false;
+        }
     }
     @Override
     public void onDestroy() {
@@ -129,6 +163,12 @@ public class BTMesh extends TabActivity {
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 	
+    
+    // so this needs to go in the handler i guess
+    public static void setStatus(int s) {
+    	mTitle.setText(s);
+    }
+    
     private final Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -180,6 +220,19 @@ public class BTMesh extends TabActivity {
             }
         }
     };
+    protected class BTMeshListener extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(D) Log.d(TAG, "BTMesh received some intent");
+            if (intent.getAction().equals("com.dic.BTMesh.updatestatus")) {
+                if(D) Log.d(TAG, "BTMesh received updatestatus intent");
+            	String newStatus = intent.getStringExtra("status");
+            	mTitle.setText(newStatus);
+                // Do something
+            }
+        }
+    }
 
 
 }
