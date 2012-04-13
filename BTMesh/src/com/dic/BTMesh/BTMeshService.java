@@ -44,41 +44,57 @@ public class BTMeshService {
     private static final boolean D = true;
 
     private static final String NAME = "BTMesh";
+    
 
+    
     // Member fields
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private AcceptThread mAcceptThread;
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
-    private int mConnectionState;
-    private int mState;
     
     private ArrayList<ConnectedThread> mConnThreads;
     private ArrayList<BluetoothSocket> mSockets;
     private ArrayList<String> mDeviceAddresses;
     
+
+
+    // later this should be replaced by an object which is effectively the head of a tree
+    public static ArrayList<String> mDeviceNames;
+    
     private ArrayList<UUID> mUuids;
+    
 
     // Constants that indicate the current connection state
     public static final int STATE_NONE = 0;       // we're doing nothing
-    public static final int STATE_LISTEN = 1;     // now listening for incoming connections
+    public static final int STATE_BROADCASTING = 1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
+    public static final int STATE_SEARCHING = 4;
 	
+    private BTMeshState BTMState;
+    
     /**
      * Constructor. Prepares a new BluetoothChat session.
      * @param context  The UI Activity Context
      * @param handler  A Handler to send messages back to the UI Activity
      */
-    public BTMeshService(Context context, Handler handler) {
+    public BTMeshService(Context context, Handler handler, BTMeshState s) {
+    	
+    	BTMState = s;
+    	
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mState = STATE_NONE;
+        BTMState.setConnectionState(STATE_NONE);
         mHandler = handler;
         mDeviceAddresses = new ArrayList<String>();
         mConnThreads = new ArrayList<ConnectedThread>();
         mSockets = new ArrayList<BluetoothSocket>();
         mUuids = new ArrayList<UUID>();
+	    BTMeshService.mDeviceNames = new ArrayList<String>();
+	    for (int i = 0; i < 7; i++) {
+	    	BTMeshService.mDeviceNames.add(null);
+	    }
         mUuids.add(UUID.fromString("249c81e0-7129-11e1-b0c4-0800200c9a66"));
         mUuids.add(UUID.fromString("249c81e1-7129-11e1-b0c4-0800200c9a66"));
         mUuids.add(UUID.fromString("249c81e2-7129-11e1-b0c4-0800200c9a66"));
@@ -92,19 +108,19 @@ public class BTMeshService {
      * Set the current state of the chat connection
      * @param state  An integer defining the current connection state
      */
-    private synchronized void setState(int state) {
-        if (D) Log.d(TAG, "setState() " + mState + " -> " + state);
-        mState = state;
-
+    /*private synchronized void setState(int state) {
+        if (D) Log.d(TAG, "setState() " + BTMstate.getConnectionState() + " -> " + state);
+        BTMstate.setConnectionState(state);
+        // send an intent to tell BTCM to update status
         // Give the new state to the Handler so the UI Activity can update
         mHandler.obtainMessage(BTChat.MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
-    }
+    }*/
 
     /**
      * Return the current connection state. */
-    public synchronized int getState() {
-        return mState;
-    }
+    /*public synchronized int getState() {
+        return mConnectionState;
+    }*/
 
     /**
      * Start the chat service. Specifically start AcceptThread to begin a
@@ -124,7 +140,7 @@ public class BTMeshService {
         	mAcceptThread = new AcceptThread();
         	mAcceptThread.start();
         }
-        setState(STATE_LISTEN);
+        BTMState.setConnectionState(STATE_NONE);
     }
 
     /**
@@ -136,7 +152,7 @@ public class BTMeshService {
         if (D) Log.d(TAG, "connect to: " + device);
 
         // Cancel any thread attempting to make a connection
-        if (mState == STATE_CONNECTING) {
+        if (BTMState.getConnectionState() == STATE_CONNECTING) {
             if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
         }
 
@@ -148,7 +164,7 @@ public class BTMeshService {
         	try {
         		mConnectThread = new ConnectThread(device, mUuids.get(i), i);
         		mConnectThread.start();
-        		setState(STATE_CONNECTING);
+        		BTMState.setConnectionState(STATE_CONNECTING);
         	} catch (Exception e) {
         	}
         }
@@ -191,8 +207,8 @@ public class BTMeshService {
         bundle.putString(BTChat.DEVICE_NAME, device.getName());
         msg.setData(bundle);
         mHandler.sendMessage(msg);*/
-        BTMesh.mDeviceNames.set(i, device.getName());
-        setState(STATE_CONNECTED);
+        mDeviceNames.set(i, device.getName());
+        BTMState.setConnectionState(STATE_CONNECTED);
     }
 
     /**
@@ -223,7 +239,7 @@ public class BTMeshService {
             mInsecureAcceptThread.cancel();
             mInsecureAcceptThread = null;
         }*/
-        setState(STATE_NONE);
+        BTMState.setConnectionState(STATE_NONE);
     }
 
     /**
@@ -236,7 +252,7 @@ public class BTMeshService {
         ConnectedThread r;
         // Synchronize a copy of the ConnectedThread
         synchronized (this) {
-            if (mState != STATE_CONNECTED) return;
+            if (mConnectionState != STATE_CONNECTED) return;
             r = mConnectedThread;
         }
         // Perform the write unsynchronized
@@ -245,7 +261,7 @@ public class BTMeshService {
     		try {
     			ConnectedThread r;
     			synchronized (this) {
-    				if (mState != STATE_CONNECTED) return;
+    				if (BTMState.getConnectionState() != STATE_CONNECTED) return;
     				r = mConnThreads.get(i);
     			}
     			r.write(out);
@@ -259,24 +275,24 @@ public class BTMeshService {
      */
     private void connectionFailed() {
         /*// Send a failure message back to the Activity
-        Message msg = mHandler.obtainMessage(BTMesh.MESSAGE_TOAST);
+        Message msg = mHandler.obtainMessage(MESSAGE_TOAST);
         Bundle bundle = new Bundle();
-        bundle.putString(BTMesh.TOAST, "Unable to connect device");
+        bundle.putString(TOAST, "Unable to connect device");
         msg.setData(bundle);
         mHandler.sendMessage(msg);
 
         // Start the service over to restart listening mode
         BTMeshService.this.start();*/
-    	setState(STATE_LISTEN);
+    	BTMState.setConnectionState(STATE_BROADCASTING);
     }
 
     /**
      * Indicate that the connection was lost and notify the UI Activity.
      */
     private void connectionLost(int i) {
-    	setState(STATE_LISTEN);
+    	BTMState.setConnectionState(STATE_BROADCASTING);
         // Send a failure message back to the Activity
-    	BTMesh.mDeviceNames.set(i, null);
+    	mDeviceNames.set(i, null);
         Message msg = mHandler.obtainMessage(BTChat.MESSAGE_TOAST);
         Bundle bundle = new Bundle();
         bundle.putString(BTChat.TOAST, "Device connection was lost");

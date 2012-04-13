@@ -17,7 +17,6 @@
 package com.dic.BTMesh;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.util.Date;
 
 import android.app.Activity;
@@ -33,7 +32,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
@@ -52,14 +50,14 @@ public class BTChat extends Activity {
     private static final String TAG = "BluetoothChat";
     private static final boolean D = true;
 
-    // Message types sent from the BluetoothChatService Handler
+    // Message types sent from the BluetoothMeshService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_READ = 2;
     public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
 
-    // Key names received from the BluetoothChatService Handler
+    // Key names received from the BluetoothMeshService Handler
     public static final String DEVICE_NAME = "device_name";
     public static final String CONN_ID = "connection_id";
     public static final String TOAST = "toast";
@@ -83,8 +81,8 @@ public class BTChat extends Activity {
     private ArrayAdapter<String> mConversationArrayAdapter;
     // String buffer for outgoing messages
     private StringBuffer mOutStringBuffer;
-    // Member object for the chat services
-    private BTMeshService mChatService = null;
+    
+    private BTMeshState BTMState;
 
 
     @Override
@@ -92,61 +90,24 @@ public class BTChat extends Activity {
         super.onCreate(savedInstanceState);
         if(D) Log.e(TAG, "+++ ON CREATE +++");
         
+		BTMState = ((BTMeshState)getApplicationContext());
+        
         // Set up the window layout
         //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-        if(D) Log.e(TAG, "+++ SETTING CONTENT VIEW +++");
         setContentView(R.layout.btchat);
         //getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
-        if(D) Log.e(TAG, "+++ DONE SET CONTENT VIEW +++");
-        // Set up the custom title
-        //mTitle = (TextView) findViewById(R.id.title_left_text);
-        //mTitle.setText(R.string.app_name);
-        //mTitle = (TextView) findViewById(R.id.title_right_text);
         
         // Get local Bluetooth adapter
-        BTMesh.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        myAdapterName = BTMesh.mBluetoothAdapter.getName();
-        // If the adapter is null, then Bluetooth is not supported
-        if (BTMesh.mBluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-        if(D) Log.e(TAG, "+++ DONE ON CREATE +++");
+        myAdapterName = BTMState.getBluetoothAdapter().getName();
+
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if(D) Log.e(TAG, "++ ON START ++");
-
-        // If BT is not on, request that it be enabled.
-        // setupChat() will then be called during onActivityResult
-        if (!BTMesh.mBluetoothAdapter.isEnabled()) {
-            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
-        // Otherwise, setup the chat session
-        } else {
-            if (mChatService == null) setupChat();
-        }
+        setupChat();
     }
 
-    @Override
-    public synchronized void onResume() {
-        super.onResume();
-        if(D) Log.e(TAG, "+ ON RESUME +");
-
-        // Performing this check in onResume() covers the case in which BT was
-        // not enabled during onStart(), so we were paused to enable it...
-        // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mChatService != null) {
-            // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mChatService.getState() == BTMeshService.STATE_NONE) {
-              // Start the Bluetooth chat services
-              mChatService.start();
-            }
-        }
-    }
 
     private void setupChat() {
         Log.d(TAG, "setupChat()");
@@ -173,8 +134,7 @@ public class BTChat extends Activity {
             }
         });
 
-        // Initialize the BluetoothChatService to perform bluetooth connections
-        mChatService = new BTMeshService(this, mHandler);
+
 
         // Initialize the buffer for outgoing messages
         mOutStringBuffer = new StringBuffer("");
@@ -192,17 +152,11 @@ public class BTChat extends Activity {
         if(D) Log.e(TAG, "-- ON STOP --");
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        // Stop the Bluetooth chat services
-        if (mChatService != null) mChatService.stop();
-        if(D) Log.e(TAG, "--- ON DESTROY ---");
-    }
+
 
     private void ensureDiscoverable() {
         if(D) Log.d(TAG, "ensure discoverable");
-        if (BTMesh.mBluetoothAdapter.getScanMode() !=
+        if (BTMState.getBluetoothAdapter().getScanMode() !=
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
@@ -307,7 +261,7 @@ public class BTChat extends Activity {
     		return;
     	}
     	
-    	if (mChatService.getState() != BTMeshService.STATE_CONNECTED) {
+    	if (BTMState.getConnectionState() == BTMeshService.STATE_NONE) {
     		Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
     		return;
     	}
@@ -328,7 +282,7 @@ public class BTChat extends Activity {
     
     private void sendData(){
     	byte[] send = unsentConvoToString().getBytes();
-    	mChatService.write(send);
+    	BTMState.getService().write(send);
     }
 
     // The action listener for the EditText widget, to listen for the return key
@@ -346,55 +300,8 @@ public class BTChat extends Activity {
     };
 
     // The Handler that gets information back from the BluetoothChatService
-    private final Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-            case MESSAGE_STATE_CHANGE:
-                /*if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                switch (msg.arg1) {
-                case BTMeshService.STATE_CONNECTED:
-                    BTMesh.mTitle.setText(R.string.title_connected_to);
-                    //mConversationArrayAdapter.clear();
-                    break;
-                case BTMeshService.STATE_CONNECTING:
-                    BTMesh.mTitle.setText(R.string.title_connecting);
-                    break;
-                case BTMeshService.STATE_LISTEN:
-                case BTMeshService.STATE_NONE:
-                    BTMesh.mTitle.setText(R.string.title_not_connected);
-                    break;
-                }*/
-                break;
-            case MESSAGE_WRITE:
-                /*byte[] writeBuf = (byte[]) msg.obj;
-                // construct a string from the buffer
-                String writeMessage = new String(writeBuf);
-                //mConversationArrayAdapter.add(mBluetoothAdapter.getName() + ":  " + writeMessage);*/
-                break;
-            case MESSAGE_READ:
-                byte[] readBuf = (byte[]) msg.obj;
-                // construct a string from the valid bytes in the buffer
-                String readMessage = new String(readBuf, 0, msg.arg1);
-                if (readMessage.length() > 0 ) {
-                    //mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
-                	addMessagesToConvo(readMessage);
-                }
-                break;
-            case MESSAGE_DEVICE_NAME:
-                // save the connected device's name
-                /*mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
-                Toast.makeText(getApplicationContext(), "Connected to "
-                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();*/
-                break;
-            case MESSAGE_TOAST:
-                Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-                               Toast.LENGTH_SHORT).show();
-                break;
-            }
-        }
-    };
-
+    
+/*
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(D) Log.d(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
@@ -403,7 +310,7 @@ public class BTChat extends Activity {
             if (resultCode == Activity.RESULT_OK) {
             	String address = data.getExtras()
             						.getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-                BluetoothDevice device = BTMesh.mBluetoothAdapter.getRemoteDevice(address);
+                BluetoothDevice device = BTMeshService.mBluetoothAdapter.getRemoteDevice(address);
                 mChatService.connect(device);
             }
             break;
@@ -426,11 +333,11 @@ public class BTChat extends Activity {
         String address = data.getExtras()
             .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
         // Get the BLuetoothDevice object
-        BluetoothDevice device = BTMesh.mBluetoothAdapter.getRemoteDevice(address);
+        BluetoothDevice device = BTMeshService.mBluetoothAdapter.getRemoteDevice(address);
         // Attempt to connect to the device
         mChatService.connect(device);
     }
-/*
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -453,6 +360,6 @@ public class BTChat extends Activity {
             return true;
         }
         return false;
-    }
-*/
+    }*/
+
 }
