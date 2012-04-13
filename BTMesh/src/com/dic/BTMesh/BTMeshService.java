@@ -386,7 +386,9 @@ public class BTMeshService {
             try {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
+            	Log.i(TAG, "About to try connect");
             	mmSocket.connect();
+            	Log.i(TAG, "Done with connect");
             } catch (IOException e) {
             	if (currUuid.toString().contentEquals(mUuids.get(6).toString())){
             		connectionFailed();
