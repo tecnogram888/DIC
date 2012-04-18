@@ -176,7 +176,7 @@ public class BTMeshService {
         }
 
         // Start a thread and try to connect to each UUID
-        for (int i = 0; i < 1; i++){
+        for (int i = 0; i < 7; i++){
         	try {
         		mConnectThread = new ConnectThread(device, mUuids.get(i), i);
         		mConnectThread.start();
@@ -338,7 +338,7 @@ public class BTMeshService {
     		setName("AcceptThread");
     		BluetoothSocket socket = null;
     		try {
-    			for (int i = 0; i < 1; i++) {
+    			for (int i = 0; i < 7; i++) {
     				serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(i));
     				socket = serverSocket.accept();
     				if (socket != null) {
