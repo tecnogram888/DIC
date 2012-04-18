@@ -150,10 +150,10 @@ public class BTMesh extends TabActivity {
     public synchronized void onPause() {
         super.onPause();
         if(D) Log.e(TAG, "- BTMesh PAUSE -");
-        if (listenerRegistered) {
+        /*if (listenerRegistered) {
             unregisterReceiver(BTMListener);
             listenerRegistered = false;
-        }
+        }*/
     }
     @Override
     public void onDestroy() {
@@ -196,6 +196,7 @@ public class BTMesh extends TabActivity {
                 //mConversationArrayAdapter.add(mBluetoothAdapter.getName() + ":  " + writeMessage);*/
                 break;
             case MESSAGE_READ:
+            	if (D) Log.d(TAG, "received a read message, sending to chat");
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
@@ -205,6 +206,9 @@ public class BTMesh extends TabActivity {
                 	i.setAction("com.dic.BTMesh.addmessages");
                 	i.putExtra("messages", readMessage);
                 	sendBroadcast(i);
+                }
+                else {
+                	if (D) Log.d(TAG, "message is empty, not sending actually");
                 }
                 break;
             case MESSAGE_DEVICE_NAME:
@@ -224,9 +228,8 @@ public class BTMesh extends TabActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(D) Log.d(TAG, "BTMesh received some intent");
             if (intent.getAction().equals("com.dic.BTMesh.updatestatus")) {
-                if(D) Log.d(TAG, "BTMesh received updatestatus intent");
+                if(D) Log.d(TAG, "BTMesh received updatestatus intent for " + intent.getStringExtra("status"));
             	String newStatus = intent.getStringExtra("status");
             	mTitle.setText(newStatus);
                 // Do something

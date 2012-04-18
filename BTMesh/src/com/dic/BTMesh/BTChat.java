@@ -91,6 +91,10 @@ public class BTChat extends Activity {
         
 		BTMState = ((BTMeshState)getApplicationContext());
 		BTMListener = new BTChatListener();
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.addmessages"));
+            listenerRegistered = true;
+        }
         
         // Set up the window layout
         //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
@@ -130,7 +134,7 @@ public class BTChat extends Activity {
     }
 
     
-    @Override
+    /*@Override
     protected void onResume() {
         super.onResume();
         if(D) Log.e(TAG, "+++ BTChat Resume +++");
@@ -150,7 +154,7 @@ public class BTChat extends Activity {
             unregisterReceiver(BTMListener);
             listenerRegistered = false;
         }
-    }
+    }*/
 
     @Override
     public void onStop() {
@@ -159,7 +163,7 @@ public class BTChat extends Activity {
     }
 
 
-
+/*
     private void ensureDiscoverable() {
         if(D) Log.d(TAG, "BTChat ensure discoverable");
         if (BTMState.getBluetoothAdapter().getScanMode() !=
@@ -169,7 +173,7 @@ public class BTChat extends Activity {
             startActivity(discoverableIntent);
         }
     }
-    
+*/    
     private void addMessagesToConvo(String m) {
         if(D) Log.d(TAG, "BTChat adding Messages");
     	int authorInd = m.indexOf("@author", 0);
@@ -314,7 +318,7 @@ public class BTChat extends Activity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            if (D) Log.d(TAG, "receive " + intent.getAction());
             if (intent.getAction().equals("com.dic.BTMesh.addmessages")) {
                 if(D) Log.d(TAG, "BTChat received addmessages intent");
             	String messages = intent.getStringExtra("messages");

@@ -40,7 +40,7 @@ import android.util.Log;
  */
 public class BTMeshService {
     // Debugging
-    private static final String TAG = "BluetoothChatService";
+    private static final String TAG = "BTMeshService";
     private static final boolean D = true;
 
     private static final String NAME = "BTMesh";
@@ -126,17 +126,25 @@ public class BTMeshService {
      * Start the chat service. Specifically start AcceptThread to begin a
      * session in listening (server) mode. Called by the Activity onResume() */
     public synchronized void start() {
-        if (D) Log.d(TAG, "start");
+        if (D) Log.d(TAG, "starting service");
 
         // Cancel any thread attempting to make a connection
-        if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+        if (mConnectThread != null) {
+        	if (D) Log.d(TAG, "killing existing connect thread");
+        	mConnectThread.cancel(); mConnectThread = null;
+        }
 
         // Cancel any thread currently running a connection
-        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
+        if (mConnectedThread != null) {
+        	if (D) Log.d(TAG, "killing existing connected thread");
+        	mConnectedThread.cancel();
+        	mConnectedThread = null;
+        }
 
 
         // Start the thread to listen on a BluetoothServerSocket
         if (mAcceptThread == null) {
+        	if (D) Log.d(TAG, "creating new accept thread");
         	mAcceptThread = new AcceptThread();
         	mAcceptThread.start();
         }
@@ -153,19 +161,28 @@ public class BTMeshService {
 
         // Cancel any thread attempting to make a connection
         if (BTMState.getConnectionState() == STATE_CONNECTING) {
-            if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+            if (mConnectThread != null) {
+            	if (D) Log.d(TAG, "cancelling connect thread");
+            	mConnectThread.cancel();
+            	mConnectThread = null;
+            }
         }
 
         // Cancel any thread currently running a connection
-        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
+        if (mConnectedThread != null) {
+        	if (D) Log.d(TAG, "cancelling connected thread");
+        	mConnectedThread.cancel();
+        	mConnectedThread = null;
+        }
 
         // Start a thread and try to connect to each UUID
-        for (int i = 0; i < 7; i++){
+        for (int i = 0; i < 1; i++){
         	try {
         		mConnectThread = new ConnectThread(device, mUuids.get(i), i);
         		mConnectThread.start();
         		BTMState.setConnectionState(STATE_CONNECTING);
         	} catch (Exception e) {
+        		if (D) Log.d(TAG, "failed to connect");
         	}
         }
     }
@@ -176,7 +193,7 @@ public class BTMeshService {
      * @param device  The BluetoothDevice that has been connected
      */
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice device, int i) {
-        if (D) Log.d(TAG, "connected");
+        if (D) Log.d(TAG, "connected " + socket.toString() + " " + device.toString() + " " + Integer.toString(i));
 
         // Cancel the thread that completed the connection
         //if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
@@ -283,14 +300,14 @@ public class BTMeshService {
 
         // Start the service over to restart listening mode
         BTMeshService.this.start();*/
-    	BTMState.setConnectionState(STATE_BROADCASTING);
+    	BTMState.setConnectionState(STATE_NONE);
     }
 
     /**
      * Indicate that the connection was lost and notify the UI Activity.
      */
     private void connectionLost(int i) {
-    	BTMState.setConnectionState(STATE_BROADCASTING);
+    	BTMState.setConnectionState(STATE_NONE);
         // Send a failure message back to the Activity
     	mDeviceNames.set(i, null);
         Message msg = mHandler.obtainMessage(BTChat.MESSAGE_TOAST);
@@ -321,7 +338,7 @@ public class BTMeshService {
     		setName("AcceptThread");
     		BluetoothSocket socket = null;
     		try {
-    			for (int i = 0; i < 7; i++) {
+    			for (int i = 0; i < 1; i++) {
     				serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(i));
     				socket = serverSocket.accept();
     				if (socket != null) {
@@ -386,11 +403,13 @@ public class BTMeshService {
             try {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
-            	Log.i(TAG, "About to try connect");
+            	Log.i(TAG, "About to try connect with index " + Integer.toString(index));
             	mmSocket.connect();
-            	Log.i(TAG, "Done with connect");
+            	Log.i(TAG, "Done with connect " + Integer.toString(index));
             } catch (IOException e) {
+            	Log.i(TAG, "Did not work");
             	if (currUuid.toString().contentEquals(mUuids.get(6).toString())){
+            		Log.i(TAG, "Tried all uuids, restarting");
             		connectionFailed();
                 }
             	// Close the socket
@@ -405,10 +424,12 @@ public class BTMeshService {
 
             // Reset the ConnectThread because we're done
         	synchronized (BTMeshService.this) {
+        		Log.i(TAG, "Killed connect thread");
         		mConnectThread = null;
         	}
 
         	// Start the connected thread
+        	Log.i(TAG, "Calling connected now with index " + Integer.toString(index));
         	connected(mmSocket, mmDevice, index);
         }
 
@@ -451,7 +472,7 @@ public class BTMeshService {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectedThread");
+            Log.i(TAG, "BEGIN mConnectedThread with index " + Integer.toString(index));
             byte[] buffer = new byte[1024];
             int bytes;
 
@@ -462,10 +483,11 @@ public class BTMeshService {
                     bytes = mmInStream.read(buffer);
 
                     // Send the obtained bytes to the UI Activity
+                    if (D) Log.d(TAG, "Received data, sending to BTMesh Handler");
                     mHandler.obtainMessage(BTChat.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {
-                    Log.e(TAG, "disconnected", e);
+                    Log.e(TAG, "IOException disconnected", e);
                     connectionLost(index);
                     break;
                 }
