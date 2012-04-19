@@ -51,8 +51,8 @@ public class BTMeshService {
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private AcceptThread mAcceptThread;
-    //private ConnectThread mConnectThread;
-    //private ConnectedThread mConnectedThread;
+    private ConnectThread mConnectThread;
+    private ConnectedThread mConnectedThread;
     
     private ArrayList<ConnectedThread> mConnectedThreads;
     private ArrayList<ConnectThread> mConnectThreads;
@@ -84,7 +84,6 @@ public class BTMeshService {
     public BTMeshService(Context context, Handler handler, BTMeshState s) {
     	
     	BTMState = s;
-    	
         mAdapter = BluetoothAdapter.getDefaultAdapter();
         BTMState.setConnectionState(STATE_NONE);
         mHandler = handler;
@@ -95,9 +94,11 @@ public class BTMeshService {
         mUuids = new ArrayList<UUID>();
 	    BTMeshService.mDeviceNames = new ArrayList<String>();
 	    for (int i = 0; i < 7; i++) {
+	    	mDeviceAddresses.add(null);
 	    	BTMeshService.mDeviceNames.add(null);
 	    	mConnectedThreads.add(null);
 	    	mConnectThreads.add(null);
+	    	mSockets.add(null);
 	    }
         mUuids.add(UUID.fromString("249c81e0-7129-11e1-b0c4-0800200c9a66"));
         mUuids.add(UUID.fromString("249c81e1-7129-11e1-b0c4-0800200c9a66"));
@@ -132,20 +133,8 @@ public class BTMeshService {
     public synchronized void start() {
         if (D) Log.d(TAG, "starting service");
 
-        // Cancel any thread attempting to make a connection
-        for (int i = 0; i < 7; i++){
-        	if (mConnectThreads.get(i) != null) {
-        		if (D) Log.d(TAG, "killing existing connect thread");
-        		mConnectThreads.get(i).cancel(); mConnectThreads.set(i,null);
-        	}
-
-        	// Cancel any thread currently running a connection
-        	if (mConnectedThreads.get(i) != null) {
-        		if (D) Log.d(TAG, "killing existing connected thread");
-        		mConnectedThreads.get(i).cancel();
-        		mConnectedThreads.set(i,null);
-        	}
-        }
+        if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
+        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
 
 
         // Start the thread to listen on a BluetoothServerSocket
@@ -165,7 +154,7 @@ public class BTMeshService {
     public synchronized void connect(BluetoothDevice device) {
         if (D) Log.d(TAG, "Beginning connect to: " + device);
 
-        /*// Cancel any thread attempting to make a connection
+        // Cancel any thread attempting to make a connection
         if (BTMState.getConnectionState() == STATE_CONNECTING) {
             if (mConnectThread != null) {
             	if (D) Log.d(TAG, "cancelling connect thread");
@@ -179,15 +168,17 @@ public class BTMeshService {
         	if (D) Log.d(TAG, "cancelling connected thread");
         	mConnectedThread.cancel();
         	mConnectedThread = null;
-        }*/
+        }
+        
 		BTMState.setConnectionState(STATE_CONNECTING);
         // Start a thread and try to connect to each UUID
         for (int i = 0; i < 7; i++){
         	try {
         		if (D) Log.d(TAG, "starting mConnectThread " + Integer.toString(i));
-        		mConnectThreads.set(i, new ConnectThread(device, mUuids.get(i), i));
-        		mConnectThreads.get(i).start();
-        		if (D) Log.d(TAG, "mConnectThreads start has finished " + Integer.toString(i));
+        		mConnectThread = new ConnectThread(device, mUuids.get(i), i);
+        		mConnectThread.start();
+        		mConnectThreads.set(i, mConnectThread);
+        		BTMState.setConnectionState(STATE_CONNECTING);
         	} catch (Exception e) {
         		if (D) Log.d(TAG, "failed to connect");
         	}
@@ -219,8 +210,9 @@ public class BTMeshService {
         }*/
 
         // Start the thread to manage the connection and perform transmissions
-        mConnectedThreads.set(i, new ConnectedThread(socket, i));
-        mConnectedThreads.get(i).start();
+        mConnectedThread = new ConnectedThread(socket, i);
+        mConnectedThread.start();
+        mConnectedThreads.set(i, mConnectedThread);
         
         //Add to array
         //mConnThreads.add(mConnectedThread);
@@ -242,7 +234,7 @@ public class BTMeshService {
     public synchronized void stop() {
         if (D) Log.d(TAG, "stop");
 
-        /*if (mConnectThread != null) {
+        if (mConnectThread != null) {
             mConnectThread.cancel();
             mConnectThread = null;
         }
@@ -250,20 +242,11 @@ public class BTMeshService {
         if (mConnectedThread != null) {
             mConnectedThread.cancel();
             mConnectedThread = null;
-        }*/
+        }
         if (mAcceptThread != null) {
         	mAcceptThread.cancel();
         	mAcceptThread = null;
         }
-        /*if (mSecureAcceptThread != null) {
-            mSecureAcceptThread.cancel();
-            mSecureAcceptThread = null;
-        }
-
-        if (mInsecureAcceptThread != null) {
-            mInsecureAcceptThread.cancel();
-            mInsecureAcceptThread = null;
-        }*/
         BTMState.setConnectionState(STATE_NONE);
     }
 
@@ -283,6 +266,9 @@ public class BTMeshService {
         // Perform the write unsynchronized
         r.write(out);*/
     	for (int i = 0; i < mConnectedThreads.size(); i++) {
+    		if (mConnectedThreads.get(i) == null){
+    			continue;
+    		}
     		try {
     			ConnectedThread r;
     			synchronized (this) {
@@ -295,21 +281,7 @@ public class BTMeshService {
     	}
     }
 
-    /**
-     * Indicate that the connection attempt failed and notify the UI Activity.
-     */
-    private void connectionFailed() {
-        /*// Send a failure message back to the Activity
-        Message msg = mHandler.obtainMessage(MESSAGE_TOAST);
-        Bundle bundle = new Bundle();
-        bundle.putString(TOAST, "Unable to connect device");
-        msg.setData(bundle);
-        mHandler.sendMessage(msg);
 
-        // Start the service over to restart listening mode
-        BTMeshService.this.start();*/
-    	BTMState.setConnectionState(STATE_NONE);
-    }
 
     /**
      * Indicate that the connection was lost and notify the UI Activity.
@@ -318,6 +290,7 @@ public class BTMeshService {
     	BTMState.setConnectionState(STATE_NONE);
         // Send a failure message back to the Activity
     	mDeviceNames.set(i, null);
+    	mConnectedThreads.set(i, null);
         Message msg = mHandler.obtainMessage(BTChat.MESSAGE_TOAST);
         Bundle bundle = new Bundle();
         bundle.putString(BTChat.TOAST, "Device connection was lost");
@@ -347,12 +320,14 @@ public class BTMeshService {
     		BluetoothSocket socket = null;
     		try {
     			for (int i = 0; i < 7; i++) {
+    				if (D) Log.d(TAG, "AcceptThread listening on index " + Integer.toString(i));
     				serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(i));
     				socket = serverSocket.accept();
     				if (socket != null) {
     					String address = socket.getRemoteDevice().getAddress();
-    					mSockets.add(socket);
-    					mDeviceAddresses.add(address);
+    					mSockets.set(i,socket);
+    					mDeviceAddresses.set(i,address);
+    					if (D) Log.d(TAG, "AcceptThread calling connected for " + Integer.toString(i));
     					connected(socket, socket.getRemoteDevice(), i);
     				}
     			}
@@ -401,7 +376,7 @@ public class BTMeshService {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectThread");
+            Log.i(TAG, "BEGIN mConnectThread " + Integer.toString(index));
             setName("ConnectThread");
 
             // Always cancel discovery because it will slow down a connection
@@ -415,30 +390,39 @@ public class BTMeshService {
             	mmSocket.connect();
             	Log.i(TAG, "Done with connect " + Integer.toString(index));
             } catch (IOException e) {
-            	Log.i(TAG, "Did not work");
-            	if (currUuid.toString().contentEquals(mUuids.get(6).toString())){
+            	Log.i(TAG, "catch: socket connect did not work " + Integer.toString(index));
+            	mConnectThreads.set(index,  null);
+            	/*if (currUuid.toString().contentEquals(mUuids.get(6).toString())){
             		Log.i(TAG, "Tried all uuids, connection failed");
-            		connectionFailed();
-                }
+            		BTMState.setConnectionState(STATE_NONE);
+                }*/
             	// Close the socket
             	try {
             		mmSocket.close();
             	} catch (IOException e2) {
             		Log.e(TAG, "unable to close() socket during connection failure", e2);
             	}
-            	Log.i(TAG, "Starting service again");
-            	BTMeshService.this.start();
+            	//Log.i(TAG, "Starting service again");
+            	//Not sure why commenting this out is fixing a bug, will look at it again if it causes other effects
+            	//BTMeshService.this.start();
             	return;
             }
-
+    		Log.i(TAG, "Escaped mConnectThread try/catch");
             // Reset the ConnectThread because we're done
         	synchronized (BTMeshService.this) {
-        		Log.i(TAG, "Setting connect thread to null for " + Integer.toString(index));
-        		mConnectThreads.set(index, null);
+        		mConnectThread = null;
+        		Log.i(TAG, "Succeeded, other connect threads");
+        		for (int i = 0; i < mConnectThreads.size(); i++) {
+        			if (mConnectThreads.get(i).mmDevice == mmDevice) {
+                		Log.i(TAG, "Stopping connect thread " + Integer.toString(i));
+        				mConnectThreads.get(i).interrupt();
+        				mConnectThreads.set(i, null);
+        			}
+        		}
         	}
 
         	// Start the connected thread
-        	Log.i(TAG, "Calling connected now with index " + Integer.toString(index));
+        	Log.i(TAG, "connect calling connected now with index " + Integer.toString(index));
         	connected(mmSocket, mmDevice, index);
         }
 
@@ -462,7 +446,7 @@ public class BTMeshService {
         private final int index;
 
         public ConnectedThread(BluetoothSocket socket, int i) {
-            Log.d(TAG, "create ConnectedThread");
+            Log.d(TAG, "create ConnectedThread " + Integer.toString(i));
             index = i;
             mmSocket = socket;
             InputStream tmpIn = null;
