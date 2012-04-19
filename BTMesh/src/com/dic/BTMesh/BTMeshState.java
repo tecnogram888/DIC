@@ -1,5 +1,9 @@
 package com.dic.BTMesh;
 
+import java.util.ArrayList;
+
+import com.dic.BTMesh.BTMeshService.ConnectedThread;
+
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
@@ -39,11 +43,19 @@ public class BTMeshState extends Application {
 	  return mBluetoothAdapter;
   }
   
+  public ArrayList<ConnectedThread> getConnectedThreads(){
+	  return mService.mConnectedThreads;
+  }
+  
   public synchronized int getConnectionState(){
 	  return mConnectionState;
   }
   
   public synchronized void setConnectionState(int s){
+	  //connected overrides other states
+	  if (mConnectionState == STATE_CONNECTED && s != STATE_NONE) {
+		  return;
+	  }
 	  if (D) Log.d(TAG, "setConnectionState to " + Integer.toString(s));
 	  mConnectionState = s;
   	  Intent i = new Intent();

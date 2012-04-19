@@ -35,26 +35,19 @@ public class BTConnectionManager extends Activity {
 	    super.onCreate(savedInstanceState);
 	    
 		BTMState = ((BTMeshState)getApplicationContext());
-	
-	    TextView textview = new TextView(this);
-	    String showText = "Connected to:\n";
-	    for (int i = 0; i < BTMeshService.mDeviceNames.size(); i++){
-	    	if (BTMeshService.mDeviceNames.get(i) != null) {
-	    		showText += (BTMeshService.mDeviceNames.get(i) + "\n");
-	    	}
-	    }
-	    textview.setText(showText);
-	    setContentView(textview);
+		updateDisplay();
 	}
 	
 	public void onResume() {
 		super.onResume();
+	    updateDisplay();
+	}
+	
+	public void updateDisplay() {
 	    TextView textview = new TextView(this);
 	    String showText = "Connected to:\n";
-	    for (int i = 0; i < BTMeshService.mDeviceNames.size(); i++){
-	    	if (BTMeshService.mDeviceNames.get(i) != null) {
-	    		showText += (BTMeshService.mDeviceNames.get(i) + "\n");
-	    	}
+	    for (int i = 0; i < BTMState.getConnectedThreads().size(); i++){
+	    	showText += (BTMState.getConnectedThreads().get(i).deviceName + "\n");
 	    }
 	    textview.setText(showText);
 	    setContentView(textview);
