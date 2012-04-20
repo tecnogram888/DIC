@@ -46,5 +46,7 @@
                 <action android:name="com.dic.BTMesh.updateCM" />
             </intent-filter>
         </activity>
+        <activity android:name=".BTFileManager">
+        </activity>
     </application>
 </manifest>

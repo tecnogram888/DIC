@@ -83,6 +83,14 @@ public class BTMesh extends TabActivity {
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
+	 // BTFileManager
+	    intent = new Intent().setClass(this, BTFileManager.class);
+	    
+	    spec = tabHost.newTabSpec("fileManager").setIndicator("FileManager",
+	                      res.getDrawable(R.drawable.ic_tab_chat))
+	                  .setContent(intent);
+	    tabHost.addTab(spec);
+
 	    // Do the same for the other tabs
 	    intent = new Intent().setClass(this, BTConnectionManager.class);
 	    
@@ -90,8 +98,7 @@ public class BTMesh extends TabActivity {
 	                      res.getDrawable(R.drawable.ic_tab_connectionmanager))
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
-
-
+	    
 	    tabHost.setCurrentTab(0);
 
         // If the adapter is null, then Bluetooth is not supported
