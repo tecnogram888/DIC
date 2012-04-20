@@ -28,10 +28,13 @@ public class FileChooser extends ListActivity {
 	}
 	private void fill(File f)
 	{
-		File[]dirs = f.listFiles();
+		// This provides a list of files
+		File[] dirs = f.listFiles();
+		// this starts with SD card
 		this.setTitle("Current Dir: "+f.getName());
-		List<Option>dir = new ArrayList<Option>();
-		List<Option>fls = new ArrayList<Option>();
+		
+		List<Option> dir = new ArrayList<Option>(); //directories
+		List<Option> fls = new ArrayList<Option>(); //files
 		try{
 			for(File ff: dirs)
 			{
@@ -39,6 +42,7 @@ public class FileChooser extends ListActivity {
 					dir.add(new Option(ff.getName(),"Folder",ff.getAbsolutePath()));
 				else
 				{
+					// push all available files into the ff directory
 					fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
 				}
 			}
@@ -51,7 +55,8 @@ public class FileChooser extends ListActivity {
 		dir.addAll(fls);
 		if(!f.getName().equalsIgnoreCase("sdcard"))
 			dir.add(0,new Option("..","Parent Directory",f.getParent()));
-		adapter = new FileArrayAdapter(FileChooser.this,R.layout.file_view,dir);
+		
+		adapter = new FileArrayAdapter(FileChooser.this, R.layout.file_view, dir);
 		this.setListAdapter(adapter);
 	}
 	@Override
@@ -68,6 +73,7 @@ public class FileChooser extends ListActivity {
 		else
 		{
 			onFileClick(o);
+			onFileClickList(o, currentDir);
 		}
 	}
 
@@ -78,7 +84,46 @@ public class FileChooser extends ListActivity {
 	private void onFileClick(Option o)
 	{
 		formStream(o);
+		// right now only tell you the file
 		Toast.makeText(this, "File Clicked: "+o.getName(), Toast.LENGTH_SHORT).show();
+	}
+
+	/*
+	 * Got the file, let's display it in a json for parsing
+	 */
+	public void onFileClickList(Option o, File f)
+	{
+		formStream(o);
+		
+		File[] dirs = f.listFiles();
+		// this starts with SD card
+		this.setTitle("Current Dir: "+f.getName());
+		
+		List<Option> dir = new ArrayList<Option>(); //directories
+		List<Option> fls = new ArrayList<Option>(); //files
+		try{
+			for(File ff: dirs)
+			{
+				if(ff.isDirectory())
+					dir.add(new Option(ff.getName(),"Folder",ff.getAbsolutePath()));
+				else
+				{
+					// push all available files into the ff directory
+					fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+				}
+			}
+		}catch(Exception e)
+		{
+
+		}
+		
+		// right now only tell you the file
+		String s = "Found Folders: ";
+		for (File fff:dirs){
+			s +=" " + fff.getName();
+		}
+		
+		Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 	}
 
 
@@ -106,6 +151,10 @@ public class FileChooser extends ListActivity {
 			Toast.makeText(this, "Something went wrong with streams: "+o.getName(), Toast.LENGTH_SHORT).show();
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	public void getFileArray(File f){
+	
 	}
 }
 
