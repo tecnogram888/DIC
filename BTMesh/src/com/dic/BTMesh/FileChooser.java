@@ -74,8 +74,12 @@ public class FileChooser extends ListActivity {
 		}
 		else
 		{
-			onFileClick(o);
-			onFileClickList(o, currentDir);
+			//onFileClick(o);
+			// this list all the files in a string
+			//onFileClickList(o, currentDir);
+			//this prompts it as a byte array;
+			writeFileAsByteArrayPrompt(readFileAsByteArray(o));
+			
 		}
 	}
 
@@ -173,6 +177,56 @@ public class FileChooser extends ListActivity {
 	public Option readFile(Option o) {
 		return o;
 	}
+	
+	/*
+	 * API
+	 * 
+	 * Convert file to byte array
+	 * 
+	 */
+	
+	public byte[] readFileAsByteArray(Option o) {
+		String sp = "BTMESHSUPERPOWERFULL";
+		String master = ""+o.getName() + sp + o.getData() + sp + o.getPath();
+		
+        byte[] byteArray = master.getBytes();
+		
+		return byteArray;
+	}
+	
+	/*
+	 * API
+	 * 
+	 * Convert byte array to file and write it
+	 * 
+	 */
+	
+	public void writeFileAsByteArray(byte[] byteArray) {
+		
+		String master = new String(byteArray);
+		String sp = "BTMESHSUPERPOWERFULL";
+		String[] tmp = master.split(sp);
+		
+		Option o = new Option(tmp[0],tmp[1],tmp[2]);
+		writeFile(o);
+			
+	}
+	
+	public void writeFileAsByteArrayPrompt(byte[] byteArray) {
+		
+		String master = byteArray.toString();
+		String sp = "BTMESHSUPERPOWERFULL";
+		
+        master = new String(byteArray);
+        
+		Toast.makeText(this, master, Toast.LENGTH_SHORT).show();
+		
+		//String[] tmp = master.split(sp);
+		
+		//Option o = new Option(tmp[0],tmp[1],tmp[2]);
+		//writeFile(o);
+			
+	}
 
 	/*
 	 * API
@@ -212,6 +266,7 @@ public class FileChooser extends ListActivity {
 		}
 	}
 
+	
 	/*
 	 * API
 	 * 
