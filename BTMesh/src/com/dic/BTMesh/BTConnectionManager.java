@@ -16,7 +16,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class BTConnectionManager extends Activity {
-    private static final String TAG = "BluetoothChat";
+    public static final int STATE_NONE = 0;       // we're doing nothing
+    public static final int STATE_BROADCASTING = 1;     // now listening for incoming connections
+    public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
+    public static final int STATE_CONNECTED = 3;  // now connected to a remote device
+    public static final int STATE_SEARCHING = 4;
+    private static final String TAG = "BTConnectionManager";
     private static final boolean D = true;
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
@@ -67,6 +72,7 @@ public class BTConnectionManager extends Activity {
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            BTMState.setConnectionState(STATE_BROADCASTING);
             startActivity(discoverableIntent);
         }
     }
@@ -93,11 +99,12 @@ public class BTConnectionManager extends Activity {
             	// Do some sort of failure thing, ideally message and quit
                 Log.d(TAG, "BT not enabled");
                 Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
+                BTMState.setConnectionState(STATE_NONE);
                 finish();
             }
         }
     }
-
+/*
     private void connectDevice(Intent data) {
         // Get the device MAC address
         String address = data.getExtras()
@@ -107,7 +114,7 @@ public class BTConnectionManager extends Activity {
         // Attempt to connect to the device
         BTMState.getService().connect(device);
     }
-	
+*/	
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -117,10 +124,12 @@ public class BTConnectionManager extends Activity {
     
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG, "options item selected");
         Intent serverIntent = null;
         switch (item.getItemId()) {
         case R.id.scan:
             // Launch the DeviceListActivity to see devices and do scan
+        	BTMState.setConnectionState(STATE_SEARCHING);
             serverIntent = new Intent(this, DeviceListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
             return true;

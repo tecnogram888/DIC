@@ -7,7 +7,7 @@ import android.os.Handler;
 import android.util.Log;
 
 public class BTMeshState extends Application {
-  private static final String TAG = "BTMesh";
+  private static final String TAG = "BTMeshState";
   private static final boolean D = true;
   // Constants that indicate the current connection state
   public static final int STATE_NONE = 0;       // we're doing nothing
@@ -23,6 +23,7 @@ public class BTMeshState extends Application {
   
   
   public void newService(Handler mHandler){
+	  if (D) Log.d(TAG, "Creating BTMService");
       mService = new BTMeshService(this, mHandler, this);
   }
   
@@ -43,6 +44,7 @@ public class BTMeshState extends Application {
   }
   
   public synchronized void setConnectionState(int s){
+	  if (D) Log.d(TAG, "setConnectionState to " + Integer.toString(s));
 	  mConnectionState = s;
   	  Intent i = new Intent();
   	  i.setAction("com.dic.BTMesh.updatestatus");
