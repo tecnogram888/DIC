@@ -1,6 +1,7 @@
 package com.dic.BTMesh;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 import com.dic.BTMesh.BTChat.BTChatListener;
@@ -64,9 +65,10 @@ public class BTFileManager extends Activity {
         
         TextView textview = new TextView(this);
 	    String showText = "Connected to:\n";
-	    for (int i = 0; i < BTMeshService.mDeviceNames.size(); i++){
-	    	if (BTMeshService.mDeviceNames.get(i) != null) {
-	    		showText += (BTMeshService.mDeviceNames.get(i) + "\n");
+	    ArrayList<String> names = BTMState.getService().getDeviceNames();
+	    for (int i = 0; i < names.size(); i++){
+	    	if (names.get(i) != null) {
+	    		showText += (names.get(i) + "\n");
 	    	}
 	    }
 	    textview.setText(showText);
