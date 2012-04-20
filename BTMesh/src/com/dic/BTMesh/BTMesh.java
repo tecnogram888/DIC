@@ -95,7 +95,7 @@ public class BTMesh extends TabActivity {
 		 // FileChooser for Debugging
 	    intent = new Intent().setClass(this, FileChooser.class);
 	    
-	    spec = tabHost.newTabSpec("fileManager").setIndicator("FileManager",
+	    spec = tabHost.newTabSpec("FileDebug").setIndicator("FileDebug",
 	                      res.getDrawable(R.drawable.ic_tab_chat))
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
