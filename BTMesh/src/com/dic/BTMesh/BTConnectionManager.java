@@ -1,5 +1,7 @@
 package com.dic.BTMesh;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -35,25 +37,22 @@ public class BTConnectionManager extends Activity {
 	    super.onCreate(savedInstanceState);
 	    
 		BTMState = ((BTMeshState)getApplicationContext());
-	
-	    TextView textview = new TextView(this);
-	    String showText = "Connected to:\n";
-	    for (int i = 0; i < BTMeshService.mDeviceNames.size(); i++){
-	    	if (BTMeshService.mDeviceNames.get(i) != null) {
-	    		showText += (BTMeshService.mDeviceNames.get(i) + "\n");
-	    	}
-	    }
-	    textview.setText(showText);
-	    setContentView(textview);
+		updateView();
+
 	}
 	
 	public void onResume() {
 		super.onResume();
+	    updateView();
+	}
+	
+	public void updateView() {
 	    TextView textview = new TextView(this);
 	    String showText = "Connected to:\n";
-	    for (int i = 0; i < BTMeshService.mDeviceNames.size(); i++){
-	    	if (BTMeshService.mDeviceNames.get(i) != null) {
-	    		showText += (BTMeshService.mDeviceNames.get(i) + "\n");
+	    ArrayList<String> names = BTMState.getDeviceNames();
+	    for (int i = 0; i < names.size(); i++){
+	    	if (names.get(i) != null) {
+	    		showText += (names.get(i) + "\n");
 	    	}
 	    }
 	    textview.setText(showText);
@@ -61,7 +60,11 @@ public class BTConnectionManager extends Activity {
 	}
 	
 	// pending
-	public int getNumDevices(){
+	public int getNumLocalDevices(){
+		return -1;
+	}
+	
+	public int getNumGlobalDevices(){
 		return -1;
 	}
 
