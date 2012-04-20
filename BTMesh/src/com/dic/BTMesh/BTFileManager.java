@@ -2,6 +2,7 @@ package com.dic.BTMesh;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +33,7 @@ public class BTFileManager extends ListActivity {
 		File[] dirs = f.listFiles();
 		// this starts with SD card
 		this.setTitle("Current Dir: "+f.getName());
-		
+
 		List<Option> dir = new ArrayList<Option>(); //directories
 		List<Option> fls = new ArrayList<Option>(); //files
 		try{
@@ -55,7 +56,7 @@ public class BTFileManager extends ListActivity {
 		dir.addAll(fls);
 		if(!f.getName().equalsIgnoreCase("sdcard"))
 			dir.add(0,new Option("..","Parent Directory",f.getParent()));
-		
+
 		adapter = new FileArrayAdapter(BTFileManager.this, R.layout.file_view, dir);
 		this.setListAdapter(adapter);
 	}
@@ -89,16 +90,16 @@ public class BTFileManager extends ListActivity {
 	}
 
 	/*
-	 * Got the file, let's display it in a json for parsing
+	 * Got the file, let's display it in a string for parsing
 	 */
 	public void onFileClickList(Option o, File f)
 	{
 		formStream(o);
-		
+
 		File[] dirs = f.listFiles();
 		// this starts with SD card
 		this.setTitle("Current Dir: "+f.getName());
-		
+
 		List<Option> dir = new ArrayList<Option>(); //directories
 		List<Option> fls = new ArrayList<Option>(); //files
 		try{
@@ -116,13 +117,13 @@ public class BTFileManager extends ListActivity {
 		{
 
 		}
-		
+
 		// right now only tell you the file
 		String s = "Found Folders: ";
 		for (File fff:dirs){
 			s +=" " + fff.getName();
 		}
-		
+
 		Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 	}
 
@@ -131,7 +132,7 @@ public class BTFileManager extends ListActivity {
 		try {
 			// read this file into InputStream
 			InputStream inputStream = new FileInputStream(o.getPath());
-
+			createFile(inputStream);
 			// write the inputStream to a FileOutputStream
 			//OutputStream out = new FileOutputStream(new File("foodfood1"));
 
@@ -152,9 +153,35 @@ public class BTFileManager extends ListActivity {
 			System.out.println(e.getMessage());
 		}
 	}
-	
-	public void getFileArray(File f){
-	
+
+	private void createFile(InputStream inputStream){
+		try {
+			//SDcard is available
+			File f=new File("/sdcard/testbunnnnnny.txt");
+			if (!f.exists()) 
+			{
+				//File does not exists
+				f.createNewFile();
+			}
+			//take your inputstream and write it to your file
+			OutputStream out;
+
+			out = new FileOutputStream(f);
+
+			byte buf[]=new byte[1024];
+			int len;
+			while((len=inputStream.read(buf))>0)
+				out.write(buf,0,len);
+			out.close();
+			System.out.println("\nFile is created...................................");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
+
 }
 
