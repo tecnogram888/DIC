@@ -43,5 +43,7 @@
         </activity>
         <activity android:name=".BTConnectionManager">
         </activity>
+        <activity android:name=".BTFileManager">
+        </activity>
     </application>
 </manifest>
