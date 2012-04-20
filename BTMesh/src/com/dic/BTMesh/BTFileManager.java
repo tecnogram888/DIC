@@ -84,7 +84,7 @@ public class BTFileManager extends ListActivity {
 	 */
 	private void onFileClick(Option o)
 	{
-		formStream(o);
+		fileToStream(o);
 		// right now only tell you the file
 		Toast.makeText(this, "File Clicked: "+o.getName(), Toast.LENGTH_SHORT).show();
 	}
@@ -94,7 +94,7 @@ public class BTFileManager extends ListActivity {
 	 */
 	public void onFileClickList(Option o, File f)
 	{
-		formStream(o);
+		fileToStream(o);
 
 		File[] dirs = f.listFiles();
 		// this starts with SD card
@@ -128,11 +128,11 @@ public class BTFileManager extends ListActivity {
 	}
 
 
-	private void formStream(Option o) {
+	private void fileToStream(Option o) {
 		try {
 			// read this file into InputStream
 			InputStream inputStream = new FileInputStream(o.getPath());
-			createFile(inputStream);
+			writeFile(inputStream, "foood.txt");
 			// write the inputStream to a FileOutputStream
 			//OutputStream out = new FileOutputStream(new File("foodfood1"));
 
@@ -154,15 +154,26 @@ public class BTFileManager extends ListActivity {
 		}
 	}
 
-	private void createFile(InputStream inputStream){
+	private Option fileToOption(Option o) {
+		return o;
+	}
+
+	/*
+	 * API
+	 * 
+	 * Write file
+	 * 
+	 */
+	private void writeFile(InputStream inputStream, String fileName){
 		try {
 			//SDcard is available
-			File f=new File("/sdcard/testbunnnnnny.txt");
+			File f=new File("/sdcard/"+fileName);
 			if (!f.exists()) 
 			{
 				//File does not exists
 				f.createNewFile();
 			}
+			/*
 			//take your inputstream and write it to your file
 			OutputStream out;
 
@@ -172,7 +183,7 @@ public class BTFileManager extends ListActivity {
 			int len;
 			while((len=inputStream.read(buf))>0)
 				out.write(buf,0,len);
-			out.close();
+			out.close();*/
 			System.out.println("\nFile is created...................................");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -182,6 +193,73 @@ public class BTFileManager extends ListActivity {
 			e.printStackTrace();
 		}
 	}
+
+	/*
+	 * API
+	 * 
+	 * Get List of Files in Array of Options
+	 * 
+	 */
+	public List<Option> getListOfFiles(){
+		currentDir = new File("/sdcard/");
+
+		File[] dirs = currentDir.listFiles();
+
+		List<Option> dir = new ArrayList<Option>(); //directories
+		List<Option> fls = new ArrayList<Option>(); //files
+		try{
+			for(File ff: dirs)
+			{
+				if(ff.isDirectory())
+					dir.add(new Option(ff.getName(),"Folder",ff.getAbsolutePath()));
+				else
+				{
+					// push all available files into the ff directory
+					fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+				}
+			}
+			return dir;
+		}catch(Exception e)
+		{
+			return null;
+		}
+	}
+
+	/*
+	 * API
+	 * 
+	 * Get List of Files in Array of String
+	 * 
+	 */
+	public List<String> getListOfFilesAsString(){
+		currentDir = new File("/sdcard/");
+
+		File[] dirs = currentDir.listFiles();
+		
+		List<String> dir = new ArrayList<String>(); //directories
+		List<String> fls = new ArrayList<String>(); //files
+		try{
+			for(File ff: dirs)
+			{
+				if(ff.isDirectory())
+					dir.add(ff.getName());
+				else
+				{
+					// push all available files into the ff directory
+					fls.add(ff.getName());
+				}
+			}
+			return dir;
+		}catch(Exception e)
+		{
+			return null;
+		}
+	}
+
+
+
+
+
 
 }
 
