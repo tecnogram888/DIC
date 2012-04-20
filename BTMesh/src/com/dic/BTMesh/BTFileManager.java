@@ -1,120 +1,160 @@
 package com.dic.BTMesh;
 
-import java.text.DateFormat;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
+import java.util.List;
 
-import com.dic.BTMesh.BTChat.BTChatListener;
-
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.app.ListActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-public class BTFileManager extends Activity {
-    // Debugging
-    private static final String TAG = "BluetoothFileManager";
-    private static final boolean D = true;
+public class BTFileManager extends ListActivity {
 
-    // Message types sent from the BluetoothMeshService Handler
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
-
-    // Layout Views
-    //private TextView mTitle;
-    private ListView mConversationView;
-    private EditText mOutEditText;
-    private Button mSendButton;
-
-    //My name
-    private String myAdapterName;
-    
-    private BTMeshState BTMState;
-    private BTChatListener BTMListener;
-    private boolean listenerRegistered = false;
-    
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if(D) Log.e(TAG, "+++ BTFileManager CREATE +++");
-
-		BTMState = ((BTMeshState)getApplicationContext());
+	private File currentDir;
+	private FileArrayAdapter adapter;
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		currentDir = new File("/sdcard/");
+		fill(currentDir);
+	}
+	private void fill(File f)
+	{
+		// This provides a list of files
+		File[] dirs = f.listFiles();
+		// this starts with SD card
+		this.setTitle("Current Dir: "+f.getName());
 		
-		BTMListener = new BTChatListener();
-        if (!listenerRegistered) {
-            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.addmessages"));
-            listenerRegistered = true;
-        }
-        
-        TextView textview = new TextView(this);
-	    String showText = "Connected to:\n";
-	    ArrayList<String> names = BTMState.getService().getDeviceNames();
-	    for (int i = 0; i < names.size(); i++){
-	    	if (names.get(i) != null) {
-	    		showText += (names.get(i) + "\n");
-	    	}
-	    }
-	    textview.setText(showText);
-	    setContentView(textview);
-	    
-        
-        // Set up the window layout
-        //requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-        setContentView(R.layout.btchat);
-        //getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
-        
-        // Get local Bluetooth adapter
-        myAdapterName = BTMState.getBluetoothAdapter().getName();
-        
-        
-        // Initialize the send button with a listener that for click events
-        mSendButton = (Button) findViewById(R.id.button_send);
-        mSendButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                // Send a message using content of the edit text widget
-                TextView view = (TextView) findViewById(R.id.edit_text_out);
-                String message = view.getText().toString();
-//                sendMessage(message);
-            }
-        });
+		List<Option> dir = new ArrayList<Option>(); //directories
+		List<Option> fls = new ArrayList<Option>(); //files
+		try{
+			for(File ff: dirs)
+			{
+				if(ff.isDirectory())
+					dir.add(new Option(ff.getName(),"Folder",ff.getAbsolutePath()));
+				else
+				{
+					// push all available files into the ff directory
+					fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+				}
+			}
+		}catch(Exception e)
+		{
+
+		}
+		Collections.sort(dir);
+		Collections.sort(fls);
+		dir.addAll(fls);
+		if(!f.getName().equalsIgnoreCase("sdcard"))
+			dir.add(0,new Option("..","Parent Directory",f.getParent()));
+		
+		adapter = new FileArrayAdapter(BTFileManager.this, R.layout.file_view, dir);
+		this.setListAdapter(adapter);
+	}
+	@Override
+	protected void onListItemClick(ListView l, View v, int position, long id) {
+		// TODO Auto-generated method stub
+		super.onListItemClick(l, v, position, id);
+		Option o = adapter.getItem(position);
+
+		//if folder we go to the folder
+		if(o.getData().equalsIgnoreCase("folder")||o.getData().equalsIgnoreCase("parent directory")){
+			currentDir = new File(o.getPath());
+			fill(currentDir);
+		}
+		else
+		{
+			onFileClick(o);
+			onFileClickList(o, currentDir);
+		}
+	}
+
+	/*
+	 * Got the file, let's do something with it
+	 * 
+	 */
+	private void onFileClick(Option o)
+	{
+		formStream(o);
+		// right now only tell you the file
+		Toast.makeText(this, "File Clicked: "+o.getName(), Toast.LENGTH_SHORT).show();
+	}
+
+	/*
+	 * Got the file, let's display it in a json for parsing
+	 */
+	public void onFileClickList(Option o, File f)
+	{
+		formStream(o);
+		
+		File[] dirs = f.listFiles();
+		// this starts with SD card
+		this.setTitle("Current Dir: "+f.getName());
+		
+		List<Option> dir = new ArrayList<Option>(); //directories
+		List<Option> fls = new ArrayList<Option>(); //files
+		try{
+			for(File ff: dirs)
+			{
+				if(ff.isDirectory())
+					dir.add(new Option(ff.getName(),"Folder",ff.getAbsolutePath()));
+				else
+				{
+					// push all available files into the ff directory
+					fls.add(new Option(ff.getName(),"File Size: "+ff.length(),ff.getAbsolutePath()));
+				}
+			}
+		}catch(Exception e)
+		{
+
+		}
+		
+		// right now only tell you the file
+		String s = "Found Folders: ";
+		for (File fff:dirs){
+			s +=" " + fff.getName();
+		}
+		
+		Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+	}
 
 
+	private void formStream(Option o) {
+		try {
+			// read this file into InputStream
+			InputStream inputStream = new FileInputStream(o.getPath());
 
-        // Initialize the buffer for outgoing messages
-//        mOutStringBuffer = new StringBuffer("");
-        
-    }
-    
+			// write the inputStream to a FileOutputStream
+			//OutputStream out = new FileOutputStream(new File("foodfood1"));
 
-    // Nested 'listener'
-    protected class BTChatListener extends BroadcastReceiver {
+			int read = 0;
+			byte[] bytes = new byte[1024];
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (D) Log.d(TAG, "receive " + intent.getAction());
-            if (intent.getAction().equals("com.dic.BTMesh.addmessages")) {
-                if(D) Log.d(TAG, "BTChat received addmessages intent");
-            	String messages = intent.getStringExtra("messages");
-//            	addMessagesToConvo(messages);
-                // Do something
-            }
-        }
-    }
+			while ((read = inputStream.read(bytes)) != -1) {
+				//out.write(bytes, 0, read);
+			}
+
+			inputStream.close();
+			//out.flush();
+			//out.close();
+
+			System.out.println("New file created!");
+		} catch (IOException e) {
+			Toast.makeText(this, "Something went wrong with streams: "+o.getName(), Toast.LENGTH_SHORT).show();
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	public void getFileArray(File f){
+	
+	}
 }
+

@@ -91,6 +91,7 @@ public class BTMesh extends TabActivity {
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
+	    
 	    // Do the same for the other tabs
 	    intent = new Intent().setClass(this, BTConnectionManager.class);
 	    
