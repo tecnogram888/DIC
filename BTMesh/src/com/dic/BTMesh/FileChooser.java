@@ -1,5 +1,6 @@
 package com.dic.BTMesh;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -132,7 +133,7 @@ public class FileChooser extends ListActivity {
 		try {
 			// read this file into InputStream
 			InputStream inputStream = new FileInputStream(o.getPath());
-			writeFile(inputStream, "foood.txt");
+			writeFile(o);
 			// write the inputStream to a FileOutputStream
 			//OutputStream out = new FileOutputStream(new File("foodfood1"));
 
@@ -154,7 +155,22 @@ public class FileChooser extends ListActivity {
 		}
 	}
 
-	private Option fileToOption(Option o) {
+	public BufferedOutputStream readFileAsStream(Option o) {
+		try {
+			// read this file into InputStream
+			FileOutputStream outputStream = new FileOutputStream(o.getPath());
+			System.out.println("File read");
+
+			return new BufferedOutputStream(outputStream);
+
+		} catch (IOException e) {
+			Toast.makeText(this, "Something went wrong with streams: "+o.getName(), Toast.LENGTH_SHORT).show();
+			System.out.println(e.getMessage());
+			return null;
+		}
+	}
+	
+	public Option readFile(Option o) {
 		return o;
 	}
 
@@ -164,9 +180,11 @@ public class FileChooser extends ListActivity {
 	 * Write file
 	 * 
 	 */
-	private void writeFile(InputStream inputStream, String fileName){
+	private void writeFile(Option o){
 		try {
 			//SDcard is available
+			
+			String fileName = o.getName();
 			File f=new File("/sdcard/"+fileName);
 			if (!f.exists()) 
 			{
@@ -200,7 +218,7 @@ public class FileChooser extends ListActivity {
 	 * Get List of Files in Array of Options
 	 * 
 	 */
-	public List<Option> getListOfFiles(){
+	public List<Option> getListOfFileNames(){
 		currentDir = new File("/sdcard/");
 
 		File[] dirs = currentDir.listFiles();
@@ -235,7 +253,7 @@ public class FileChooser extends ListActivity {
 		currentDir = new File("/sdcard/");
 
 		File[] dirs = currentDir.listFiles();
-		
+
 		List<String> dir = new ArrayList<String>(); //directories
 		List<String> fls = new ArrayList<String>(); //files
 		try{
