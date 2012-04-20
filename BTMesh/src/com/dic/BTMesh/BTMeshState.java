@@ -1,5 +1,7 @@
 package com.dic.BTMesh;
 
+import java.util.ArrayList;
+
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
@@ -33,6 +35,14 @@ public class BTMeshState extends Application {
   
   public BTMeshService getService(){
 	  return mService;
+  }
+  
+  public ArrayList<String> getDeviceNames(){
+	  ArrayList<String> retAL = new ArrayList<String>();
+	  for (int i = 0; i < mService.mConnectedThreads.size(); i++) {
+		  retAL.add(mService.mConnectedThreads.get(i).deviceName);
+	  }
+	  return retAL;
   }
   
   public BluetoothAdapter getBluetoothAdapter(){
