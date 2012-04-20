@@ -2,11 +2,15 @@ package com.dic.BTMesh;
 
 import java.util.ArrayList;
 
+import com.dic.BTMesh.BTChat.BTChatListener;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -30,6 +34,8 @@ public class BTConnectionManager extends Activity {
     private static final int REQUEST_ENABLE_BT = 2;
     
     private BTMeshState BTMState;
+    private BTCMListener BTMListener;
+    private boolean listenerRegistered = false;
     
 	/** Called when the activity is first created. */
 	@Override
@@ -37,6 +43,11 @@ public class BTConnectionManager extends Activity {
 	    super.onCreate(savedInstanceState);
 	    
 		BTMState = ((BTMeshState)getApplicationContext());
+		BTMListener = new BTCMListener();
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updateCM"));
+            listenerRegistered = true;
+        }
 		updateView();
 
 	}
@@ -49,7 +60,7 @@ public class BTConnectionManager extends Activity {
 	public void updateView() {
 	    TextView textview = new TextView(this);
 	    String showText = "Connected to:\n";
-	    ArrayList<String> names = BTMState.getDeviceNames();
+	    ArrayList<String> names = BTMState.getService().getDeviceNames();
 	    for (int i = 0; i < names.size(); i++){
 	    	if (names.get(i) != null) {
 	    		showText += (names.get(i) + "\n");
@@ -107,17 +118,7 @@ public class BTConnectionManager extends Activity {
             }
         }
     }
-/*
-    private void connectDevice(Intent data) {
-        // Get the device MAC address
-        String address = data.getExtras()
-            .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-        // Get the BLuetoothDevice object
-        BluetoothDevice device = BTMState.getBluetoothAdapter().getRemoteDevice(address);
-        // Attempt to connect to the device
-        BTMState.getService().connect(device);
-    }
-*/	
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -142,6 +143,16 @@ public class BTConnectionManager extends Activity {
             return true;
         }
         return false;
+    }
+    protected class BTCMListener extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals("com.dic.BTMesh.updateCM")) {
+            	updateView();
+                // Do something
+            }
+        }
     }
 
 }

@@ -37,14 +37,6 @@ public class BTMeshState extends Application {
 	  return mService;
   }
   
-  public ArrayList<String> getDeviceNames(){
-	  ArrayList<String> retAL = new ArrayList<String>();
-	  for (int i = 0; i < mService.mConnectedThreads.size(); i++) {
-		  retAL.add(mService.mConnectedThreads.get(i).deviceName);
-	  }
-	  return retAL;
-  }
-  
   public BluetoothAdapter getBluetoothAdapter(){
 	  return mBluetoothAdapter;
   }

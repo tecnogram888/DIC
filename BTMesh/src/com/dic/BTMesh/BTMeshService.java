@@ -27,6 +27,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -166,17 +167,30 @@ public class BTMeshService {
      */
     public synchronized void connected(BluetoothSocket socket, BluetoothDevice device, int index) {
         if (D) Log.d(TAG, "BTMeshService connected " + Integer.toString(index));
+        BTMState.setConnectionState(STATE_CONNECTED);        
+        // Don't connect if we already have a local connection to this device
+        for (int i = 0; i < getDeviceAddresses().size(); i++){
+        	if (device.getAddress() == getDeviceAddresses().get(i)) {
+        		if (D) Log.d(TAG, "Already connected on channel " + Integer.toString(i));
+        		return;
+        	}
+        }
 
         // Start the thread to manage the connection and perform transmissions
         if (D) Log.d(TAG, "Creating ConnectedThread " + Integer.toString(index));
-        mConnectedThread = new ConnectedThread(socket, device.getName(), index);
+        mConnectedThread = new ConnectedThread(socket, device, index);
         mConnectedThread.start();
         
         //Add to array
         if (D) Log.d(TAG, "Adding ConnectedThread to array");
         mConnectedThreads.add(mConnectedThread);
 
-        BTMState.setConnectionState(STATE_CONNECTED);
+
+        //causing problems right now, and not really necessary.
+        //mHandler.obtainMessage(BTMesh.CONNECTION_UPDATED).sendToTarget();
+        
+    	
+        
     }
 
     /**
@@ -372,17 +386,35 @@ public class BTMeshService {
      * This thread runs during a connection with a remote device.
      * It handles all incoming and outgoing transmissions.
      */
+    
+    public ArrayList<String> getDeviceNames(){
+  	  ArrayList<String> retAL = new ArrayList<String>();
+  	  for (int i = 0; i < mConnectedThreads.size(); i++) {
+  		  retAL.add(mConnectedThreads.get(i).deviceName);
+  	  }
+  	  return retAL;
+    }
+    public ArrayList<String> getDeviceAddresses(){
+    	  ArrayList<String> retAL = new ArrayList<String>();
+    	  for (int i = 0; i < mConnectedThreads.size(); i++) {
+    		  retAL.add(mConnectedThreads.get(i).deviceAddress);
+    	  }
+    	  return retAL;
+      }
+    
     public class ConnectedThread extends Thread {
     	public final String deviceName;
+    	public final String deviceAddress;
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
         private final int index;
 
-        public ConnectedThread(BluetoothSocket socket, String name, int i) {
+        public ConnectedThread(BluetoothSocket socket, BluetoothDevice device, int i) {
             index = i;
             Log.d(TAG, "create ConnectedThread " + Integer.toString(index));
-            deviceName = name;
+            deviceName = device.getName();
+            deviceAddress = device.getAddress();
             mmSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
@@ -430,10 +462,6 @@ public class BTMeshService {
             try {
             	if (D) Log.d(TAG, "mConnectedThread writing to " + Integer.toString(index));
                 mmOutStream.write(buffer);
-
-                // Share the sent message back to the UI Activity
-                mHandler.obtainMessage(BTMesh.MESSAGE_WRITE, -1, -1, buffer)
-                        .sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "Exception during write", e);
             }

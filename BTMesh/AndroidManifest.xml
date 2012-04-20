@@ -42,6 +42,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".BTConnectionManager">
+            <intent-filter>
+                <action android:name="com.dic.BTMesh.updateCM" />
+            </intent-filter>
         </activity>
     </application>
 </manifest>

@@ -26,11 +26,9 @@ public class BTMesh extends TabActivity {
     private static final boolean D = true;
     
     // Message types sent from the BluetoothMeshService Handler
-    public static final int MESSAGE_STATE_CHANGE = 1;
+    public static final int CONNECTION_UPDATED = 1;
     public static final int MESSAGE_READ = 2;
-    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
+    public static final int MESSAGE_TOAST = 3;
 
     // Intent request codes
     private static final int REQUEST_CONNECT_DEVICE = 1;
@@ -173,54 +171,27 @@ public class BTMesh extends TabActivity {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-            case MESSAGE_STATE_CHANGE:
-                /*if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
-                switch (msg.arg1) {
-                case BTMeshService.STATE_CONNECTED:
-                    BTMesh.mTitle.setText(R.string.title_connected_to);
-                    //mConversationArrayAdapter.clear();
-                    break;
-                case BTMeshService.STATE_CONNECTING:
-                    BTMesh.mTitle.setText(R.string.title_connecting);
-                    break;
-                case BTMeshService.STATE_LISTEN:
-                case BTMeshService.STATE_NONE:
-                    BTMesh.mTitle.setText(R.string.title_not_connected);
-                    break;
-                }*/
-                break;
-            case MESSAGE_WRITE:
-                /*byte[] writeBuf = (byte[]) msg.obj;
-                // construct a string from the buffer
-                String writeMessage = new String(writeBuf);
-                //mConversationArrayAdapter.add(mBluetoothAdapter.getName() + ":  " + writeMessage);*/
-                break;
+            case CONNECTION_UPDATED:
+            	if (D) Log.d(TAG, "received a connection update message, sending to BTCM");
+            	Intent i = new Intent();
+            	i.setAction("com.dic.BTMesh.updateCM");
+            	sendBroadcast(i);
+            	break;
             case MESSAGE_READ:
             	if (D) Log.d(TAG, "received a read message, sending to chat");
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
                 if (readMessage.length() > 0 ) {
-                    //mConversationArrayAdapter.add(mConnectedDeviceName+":  " + readMessage);
-                	Intent i = new Intent();
-                	i.setAction("com.dic.BTMesh.addmessages");
-                	i.putExtra("messages", readMessage);
-                	sendBroadcast(i);
+                	Intent i2 = new Intent();
+                	i2.setAction("com.dic.BTMesh.addmessages");
+                	i2.putExtra("messages", readMessage);
+                	sendBroadcast(i2);
                 }
                 else {
                 	if (D) Log.d(TAG, "message is empty, not sending actually");
                 }
                 break;
-            case MESSAGE_DEVICE_NAME:
-                // save the connected device's name
-                /*mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
-                Toast.makeText(getApplicationContext(), "Connected to "
-                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();*/
-                break;
-            //case MESSAGE_TOAST:
-            //    Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-            //                   Toast.LENGTH_SHORT).show();
-            //    break;
             }
         }
     };
