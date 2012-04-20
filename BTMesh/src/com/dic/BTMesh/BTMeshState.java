@@ -40,6 +40,14 @@ public class BTMeshState extends Application {
   public BluetoothAdapter getBluetoothAdapter(){
 	  return mBluetoothAdapter;
   }
+
+  public int getNumLocalDevices(){
+	return mService.getDeviceNames().size();
+  }
+		
+  public int getNumGlobalDevices(){
+	return -1;
+  }
   
   public synchronized int getConnectionState(){
 	  return mConnectionState;
@@ -61,7 +69,10 @@ public class BTMeshState extends Application {
 		  i.putExtra("status", getString(R.string.title_connecting));
 		  break;
 	  case STATE_CONNECTED:
-		  i.putExtra("status", getString(R.string.title_connected_to));
+		  String fullStr = getString(R.string.title_connected) + ": "
+				  	+ Integer.toString(getNumGlobalDevices()) + " ("
+				  	+ Integer.toString(getNumLocalDevices()) + ")";
+		  i.putExtra("status", fullStr);
 		  break;
 	  case STATE_SEARCHING:
 		  i.putExtra("status", getString(R.string.title_searching));

@@ -3,6 +3,7 @@ package com.dic.BTMesh;
 import java.util.ArrayList;
 
 import com.dic.BTMesh.BTChat.BTChatListener;
+import com.dic.BTMesh.BTMeshService.ConnectedThread;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -60,23 +61,15 @@ public class BTConnectionManager extends Activity {
 	public void updateView() {
 	    TextView textview = new TextView(this);
 	    String showText = "Connected to:\n";
-	    ArrayList<String> names = BTMState.getService().getDeviceNames();
-	    for (int i = 0; i < names.size(); i++){
-	    	if (names.get(i) != null) {
-	    		showText += (names.get(i) + "\n");
+	    ArrayList<ConnectedThread> connections = BTMState.getService().mConnectedThreads;
+	    for (int i = 0; i < connections.size(); i++){
+	    	ConnectedThread c = connections.get(i);
+	    	if (c != null) {
+	    		showText += (Integer.toString(c.index) + " " + c.deviceName + ":\t" + c.deviceAddress + "\n");
 	    	}
 	    }
 	    textview.setText(showText);
 	    setContentView(textview);
-	}
-	
-	// pending
-	public int getNumLocalDevices(){
-		return -1;
-	}
-	
-	public int getNumGlobalDevices(){
-		return -1;
 	}
 
 	

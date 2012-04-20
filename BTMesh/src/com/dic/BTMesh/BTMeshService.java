@@ -149,7 +149,7 @@ public class BTMeshService {
         }
 
         // Start a thread and try to connect to each UUID
-        for (int i = 0; i < 7; i++){
+        for (int i = 0; i < 1; i++){
         	try {
         		if (D) Log.d(TAG, "Creating connect thread " + Integer.toString(i));
         		mConnectThread = new ConnectThread(device, mUuids.get(i), i);
@@ -189,6 +189,7 @@ public class BTMeshService {
         //causing problems right now, and not really necessary.
         //mHandler.obtainMessage(BTMesh.CONNECTION_UPDATED).sendToTarget();
         
+        BTMState.setConnectionState(STATE_CONNECTED);        
     	
         
     }
@@ -277,7 +278,7 @@ public class BTMeshService {
     		setName("AcceptThread");
     		BluetoothSocket socket = null;
     		try {
-    			for (int i = 0; i < 7; i++) {
+    			for (int i = 0; i < 1; i++) {
     				if (D) Log.d(TAG, "mAcceptThread listening on " + Integer.toString(i));
     				serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(i));
     				socket = serverSocket.accept();
@@ -293,6 +294,7 @@ public class BTMeshService {
     			Log.e(TAG, "accept() failed", e);
     		}
     		if (D) Log.i(TAG, "mAcceptThread Finished");
+    		//this means connection closed
     	}
 
         public void cancel() {
@@ -408,7 +410,7 @@ public class BTMeshService {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
-        private final int index;
+        public final int index;
 
         public ConnectedThread(BluetoothSocket socket, BluetoothDevice device, int i) {
             index = i;

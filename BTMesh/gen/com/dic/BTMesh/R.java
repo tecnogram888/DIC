@@ -61,7 +61,7 @@ public final class R {
          */
         public static final int send=0x7f040001;
         public static final int title_broadcasting=0x7f040006;
-        public static final int title_connected_to=0x7f040007;
+        public static final int title_connected=0x7f040007;
         public static final int title_connecting=0x7f040004;
         public static final int title_not_connected=0x7f040008;
         public static final int title_other_devices=0x7f04000e;

@@ -24,7 +24,7 @@
     <string name="title_connecting">connecting...</string>
 	<string name="title_searching">searching...</string>
 	<string name="title_broadcasting">broadcasting...</string>    
-    <string name="title_connected_to">connected to: </string>
+    <string name="title_connected">connected</string>
     <string name="title_not_connected">not connected</string>
 
     <!--  DeviceListActivity -->
