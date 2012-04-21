@@ -48,6 +48,10 @@ public class BTMeshState extends Application {
 	return -1;
   }
   
+  public synchronized void updateConnected(){
+	  setConnectionState(STATE_CONNECTED);
+  }
+  
   public synchronized int getConnectionState(){
 	  return mConnectionState;
   }
@@ -61,9 +65,6 @@ public class BTMeshState extends Application {
 	  case STATE_NONE:
 		  i.putExtra("status", getString(R.string.title_not_connected));
 		  break;
-	  /*case STATE_BROADCASTING:
-		  i.putExtra("status", getString(R.string.title_broadcasting));
-		  break;*/
 	  case STATE_CONNECTING:
 		  i.putExtra("status", getString(R.string.title_connecting));
 		  break;

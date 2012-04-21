@@ -164,10 +164,10 @@ public class BTMesh extends TabActivity {
     public synchronized void onPause() {
         super.onPause();
         if(D) Log.e(TAG, "- BTMesh PAUSE -");
-        /*if (listenerRegistered) {
+        if (listenerRegistered) {
             unregisterReceiver(BTMListener);
             listenerRegistered = false;
-        }*/
+        }
     }
     @Override
     public void onDestroy() {
