@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (C) 2009 The Android Open Source Project
+<!--
+     Copyright (C) 2009 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -11,42 +12,54 @@
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
-     limitations under the License.
+     limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.dic.BTMesh"
-      android:versionCode="1"
-      android:versionName="1.0">
+    package="com.dic.BTMesh"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
     <uses-sdk android:minSdkVersion="6" />
+
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    <application android:name=".BTMeshState"
-                 android:label="@string/app_name"
-                 android:icon="@drawable/app_icon" >
-        <activity android:name=".BTMesh"
-                  android:label="@string/app_name"
-                  android:configChanges="orientation|keyboardHidden" >
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:name=".BTMeshState"
+        android:icon="@drawable/app_icon"
+        android:label="@string/app_name" >
+        <activity
+            android:name=".BTMesh"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+
                 <action android:name="com.dic.BTMesh.updatestatus" />
             </intent-filter>
         </activity>
-        <activity android:name=".DeviceListActivity"
-                  android:label="@string/select_device"
-                  android:theme="@android:style/Theme.Dialog"
-                  android:configChanges="orientation|keyboardHidden" />
-        <activity android:name=".BTChat">
+        <activity
+            android:name=".DeviceListActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:label="@string/select_device"
+            android:theme="@android:style/Theme.Dialog" />
+        <activity android:name=".BTChat" >
             <intent-filter>
                 <action android:name="com.dic.BTMesh.addmessages" />
             </intent-filter>
         </activity>
-        <activity android:name=".BTConnectionManager">
+        <activity android:name=".BTConnectionManager" >
             <intent-filter>
                 <action android:name="com.dic.BTMesh.updateCM" />
             </intent-filter>
         </activity>
-        <activity android:name=".BTFileManager">
+        <activity android:name=".BTFileManager" >
+        </activity>
+                <activity android:name=".FileChooser" >
         </activity>
     </application>
+
 </manifest>

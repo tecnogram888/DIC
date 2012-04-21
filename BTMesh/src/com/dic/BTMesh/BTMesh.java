@@ -91,6 +91,15 @@ public class BTMesh extends TabActivity {
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
+	    
+		 // FileChooser for Debugging
+	    intent = new Intent().setClass(this, FileChooser.class);
+	    
+	    spec = tabHost.newTabSpec("FileDebug").setIndicator("FileDebug",
+	                      res.getDrawable(R.drawable.ic_tab_chat))
+	                  .setContent(intent);
+	    tabHost.addTab(spec);
+	    
 	    // Do the same for the other tabs
 	    intent = new Intent().setClass(this, BTConnectionManager.class);
 	    
@@ -190,10 +199,17 @@ public class BTMesh extends TabActivity {
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
                 if (readMessage.length() > 0 ) {
-                	Intent i2 = new Intent();
-                	i2.setAction("com.dic.BTMesh.addmessages");
-                	i2.putExtra("messages", readMessage);
-                	sendBroadcast(i2);
+                    if (readMessage.indexOf("@BTFILEMANAGER", 0) == 0) {
+                    	Intent btFM = new Intent();
+                    	btFM.setAction("com.dic.BTFileManager.processMessage");
+                    	btFM.putExtra("message", readMessage);
+                    	sendBroadcast(btFM);
+                    } else {
+                    	Intent i2 = new Intent();
+                    	i2.setAction("com.dic.BTMesh.addmessages");
+                    	i2.putExtra("messages", readMessage);
+                    	sendBroadcast(i2);
+                    }
                 }
                 else {
                 	if (D) Log.d(TAG, "message is empty, not sending actually");

@@ -1,24 +1,15 @@
 package com.dic.BTMesh;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-
-import com.dic.BTMesh.BTChat.BTChatListener;
 
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -57,11 +48,11 @@ public class BTFileManager extends Activity {
 
 		BTMState = ((BTMeshState)getApplicationContext());
 		
-		BTMListener = new BTChatListener();
+		/*BTMListener = new BTChatListener();
         if (!listenerRegistered) {
             registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.addmessages"));
             listenerRegistered = true;
-        }
+        }*/
         
         //TextView textview = new TextView(this);
 	    //String showText = "Connected to:\n";
@@ -99,20 +90,70 @@ public class BTFileManager extends Activity {
 
         // Initialize the buffer for outgoing messages
 //        mOutStringBuffer = new StringBuffer("");
+
+		sendData();
+		
+    }
+
+    /**
+     * Sends a message.
+     * @param message  A string of text to send.
+     */
+    private void sendMessage(String message) {
+        if(D) Log.d(TAG, "BTChat sendMessage");
+        
+
+    	if (message.length() == 0) {
+    		return;
+    	}
+    	
+    	if (BTMState.getConnectionState() == BTMeshService.STATE_NONE) {
+    		Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+    		return;
+    	}
+    	/*
+    	String timeStamp = DateFormat.getDateTimeInstance().format(new Date());
+    	mConversationArrayAdapter.add(myAdapterName + ": " + message);
+    	BTMessage newMessage = new BTMessage(myAdapterName, timeStamp, message);
+    	mConversationArrayFull.add(newMessage);
+    	mConversationArrayUnsent.add(newMessage);
+        //mConversationArrayAdapter.add(mBluetoothAdapter.getName() +  " @ " + timeStamp + ":\n" + message);
+    	mOutStringBuffer.setLength(0);
+    	mOutEditText.setText(mOutStringBuffer);
+    	*/
+    	sendData();
+    	//mConversationArrayUnsent.clear();
+        
         
     }
-    
 
+    private void sendData(){
+        if(D) Log.d(TAG, "BTChat sendData");
+        String testBTFileManager = "@BTFileManager<type>RequestForFiles</type>";
+        BTMState.getService().write(testBTFileManager.getBytes());
+    	//byte[] send = unsentConvoToString().getBytes();
+    	//BTMState.getService().write(send);
+    }
+    
+    private void processMessage(String message) {
+    	String type = message.substring( message.indexOf("<type>") + 6, message.indexOf("</type>") );
+    	if (type.equals("RequestForFiles")); {
+
+            if(D) Log.d(TAG, "BTProcessMessage YAY RECEIVED DATA");
+    	}
+    }
+
+    
     // Nested 'listener'
     protected class BTChatListener extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             if (D) Log.d(TAG, "receive " + intent.getAction());
-            if (intent.getAction().equals("com.dic.BTMesh.addmessages")) {
-                if(D) Log.d(TAG, "BTChat received addmessages intent");
-            	String messages = intent.getStringExtra("messages");
-//            	addMessagesToConvo(messages);
+            if (intent.getAction().equals("com.dic.BTFileManager.processMessage")) {
+                if(D) Log.d(TAG, "BTFileManager received processMessage intent");
+            	String message = intent.getStringExtra("message");
+            	processMessage(message);
                 // Do something
             }
         }
