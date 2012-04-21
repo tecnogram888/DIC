@@ -10,13 +10,12 @@ import android.util.Log;
 
 public class BTMeshState extends Application {
   private static final String TAG = "BTMeshState";
-  private static final boolean D = true;
+  private static final boolean D = false;
   // Constants that indicate the current connection state
   public static final int STATE_NONE = 0;       // we're doing nothing
-  public static final int STATE_BROADCASTING = 1;     // now listening for incoming connections
+  public static final int STATE_LISTEN = 1;     // now listening for incoming connections
   public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
   public static final int STATE_CONNECTED = 3;  // now connected to a remote device
-  public static final int STATE_SEARCHING = 4;
 	
   private BTMeshService mService;
   private BluetoothAdapter mBluetoothAdapter = null;
@@ -42,7 +41,7 @@ public class BTMeshState extends Application {
   }
 
   public int getNumLocalDevices(){
-	return mService.getDeviceNames().size();
+	return mService.numConnections();
   }
 		
   public int getNumGlobalDevices(){
@@ -62,9 +61,9 @@ public class BTMeshState extends Application {
 	  case STATE_NONE:
 		  i.putExtra("status", getString(R.string.title_not_connected));
 		  break;
-	  case STATE_BROADCASTING:
+	  /*case STATE_BROADCASTING:
 		  i.putExtra("status", getString(R.string.title_broadcasting));
-		  break;
+		  break;*/
 	  case STATE_CONNECTING:
 		  i.putExtra("status", getString(R.string.title_connecting));
 		  break;
@@ -74,7 +73,7 @@ public class BTMeshState extends Application {
 				  	+ Integer.toString(getNumLocalDevices()) + ")";
 		  i.putExtra("status", fullStr);
 		  break;
-	  case STATE_SEARCHING:
+	  case STATE_LISTEN:
 		  i.putExtra("status", getString(R.string.title_searching));
 		  break;
 	  }

@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 public class BTMesh extends TabActivity {
     private static final String TAG = "BTMesh";
-    private static final boolean D = true;
+    private static final boolean D = false;
     
     // Message types sent from the BluetoothMeshService Handler
     public static final int CONNECTION_UPDATED = 1;

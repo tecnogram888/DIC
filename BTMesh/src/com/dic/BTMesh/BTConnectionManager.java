@@ -3,7 +3,6 @@ package com.dic.BTMesh;
 import java.util.ArrayList;
 
 import com.dic.BTMesh.BTChat.BTChatListener;
-import com.dic.BTMesh.BTMeshService.ConnectedThread;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -24,10 +23,9 @@ import android.widget.Toast;
 
 public class BTConnectionManager extends Activity {
     public static final int STATE_NONE = 0;       // we're doing nothing
-    public static final int STATE_BROADCASTING = 1;     // now listening for incoming connections
+    public static final int STATE_LISTEN = 1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
-    public static final int STATE_SEARCHING = 4;
     private static final String TAG = "BTConnectionManager";
     private static final boolean D = true;
     // Intent request codes
@@ -61,11 +59,19 @@ public class BTConnectionManager extends Activity {
 	public void updateView() {
 	    TextView textview = new TextView(this);
 	    String showText = "Connected to:\n";
-	    ArrayList<ConnectedThread> connections = BTMState.getService().mConnectedThreads;
+/*	    ArrayList<ConnectedThread> connections = BTMState.getService().mConnectedThreads;
 	    for (int i = 0; i < connections.size(); i++){
 	    	ConnectedThread c = connections.get(i);
 	    	if (c != null) {
 	    		showText += (Integer.toString(c.index) + " " + c.deviceName + ":\t" + c.deviceAddress + "\n");
+	    	}
+	    }*/
+	    ArrayList<String> addresses = BTMState.getService().mDeviceAddresses;
+	    for (int i = 0; i < addresses.size(); i++) {
+	    	if (addresses.get(i) != null) {
+	    		showText += (addresses.get(i) + "\n");
+	    	} else {
+	    		showText += ("no connection\n");
 	    	}
 	    }
 	    textview.setText(showText);
@@ -79,7 +85,7 @@ public class BTConnectionManager extends Activity {
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-            BTMState.setConnectionState(STATE_BROADCASTING);
+            //BTMState.setConnectionState(BTMesh.STATE_BROADCASTING);
             startActivity(discoverableIntent);
         }
     }
@@ -126,7 +132,7 @@ public class BTConnectionManager extends Activity {
         switch (item.getItemId()) {
         case R.id.scan:
             // Launch the DeviceListActivity to see devices and do scan
-        	BTMState.setConnectionState(STATE_SEARCHING);
+        	//BTMState.setConnectionState(STATE_SEARCHING);
             serverIntent = new Intent(this, DeviceListActivity.class);
             startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
             return true;

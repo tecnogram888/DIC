@@ -63,16 +63,16 @@ public class BTFileManager extends Activity {
             listenerRegistered = true;
         }
         
-        TextView textview = new TextView(this);
-	    String showText = "Connected to:\n";
-	    ArrayList<String> names = BTMState.getService().getDeviceNames();
+        //TextView textview = new TextView(this);
+	    //String showText = "Connected to:\n";
+	    /*ArrayList<String> names = BTMState.getService().getDeviceNames();
 	    for (int i = 0; i < names.size(); i++){
 	    	if (names.get(i) != null) {
 	    		showText += (names.get(i) + "\n");
 	    	}
 	    }
 	    textview.setText(showText);
-	    setContentView(textview);
+	    setContentView(textview);*/
 	    
         
         // Set up the window layout
