@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 public class BTMesh extends TabActivity {
     private static final String TAG = "BTMesh";
-    private static final boolean D = false;
+    private static final boolean D = true;
     
     // Message types sent from the BluetoothMeshService Handler
     public static final int CONNECTION_UPDATED = 1;
@@ -143,7 +143,11 @@ public class BTMesh extends TabActivity {
     public synchronized void onResume() {
         super.onResume();
         if(D) Log.e(TAG, "+ ON RESUME +");
-
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updatestatus"));
+            listenerRegistered = true;
+        }
+        BTMState.refreshConnectionState();
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
@@ -153,10 +157,6 @@ public class BTMesh extends TabActivity {
               // Start the Bluetooth chat services
               BTMState.getService().start();
             }
-        }
-        if (!listenerRegistered) {
-            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updatestatus"));
-            listenerRegistered = true;
         }
     }
     

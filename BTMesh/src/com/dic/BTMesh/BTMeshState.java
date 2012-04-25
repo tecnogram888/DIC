@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class BTMeshState extends Application {
   private static final String TAG = "BTMeshState";
-  private static final boolean D = false;
+  private static final boolean D = true;
   // Constants that indicate the current connection state
   public static final int STATE_NONE = 0;       // we're doing nothing
   public static final int STATE_LISTEN = 1;     // now listening for incoming connections
@@ -54,6 +54,10 @@ public class BTMeshState extends Application {
   
   public synchronized int getConnectionState(){
 	  return mConnectionState;
+  }
+  
+  public synchronized void refreshConnectionState() {
+	  setConnectionState(mConnectionState);
   }
   
   public synchronized void setConnectionState(int s){

@@ -71,7 +71,7 @@ public class BTConnectionManager extends Activity {
 	    	if (addresses.get(i) != null) {
 	    		showText += (addresses.get(i) + "\n");
 	    	} 
-	    	else if (i == BTMState.getService().acceptChannel) {
+	    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
 	    		showText += ("listening...\n");
 	    	}
 	    	else {
