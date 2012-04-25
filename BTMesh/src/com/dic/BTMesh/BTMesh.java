@@ -193,12 +193,12 @@ public class BTMesh extends TabActivity {
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
                 if (readMessage.length() > 0 ) {
-                    if (readMessage.indexOf("@BTFILEMANAGER", 0) == 0) {
+                    if (readMessage.startsWith("@BTFILEMANAGER")) {
                     	Intent btFM = new Intent();
                     	btFM.setAction("com.dic.BTFileManager.processMessage");
                     	btFM.putExtra("message", readMessage);
                     	sendBroadcast(btFM);
-                    } else {
+                    } else if (readMessage.startsWith("@CHAT")){
                     	Intent i2 = new Intent();
                     	i2.setAction("com.dic.BTMesh.addmessages");
                     	i2.putExtra("messages", readMessage);

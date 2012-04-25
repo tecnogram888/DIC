@@ -174,8 +174,10 @@ public class BTChat extends Activity {
         }
     }
 */    
-    private void addMessagesToConvo(String m) {
+    private void addMessagesToConvo(String in) {
         if(D) Log.d(TAG, "BTChat adding Messages");
+        //filter out the "@CHAT"
+        String m = in.substring(5);
     	int authorInd = m.indexOf("@author", 0);
     	int timestampInd = m.indexOf("@timestamp", 0);
     	int textInd = m.indexOf("@text", 0);
@@ -240,7 +242,7 @@ public class BTChat extends Activity {
 
     private String unsentConvoToString() {
         if(D) Log.d(TAG, "BTChat unsentConvoToString");
-    	String flat = "";
+    	String flat = "@CHAT";
     	for (int i = 0; i < mConversationArrayUnsent.getCount(); i++){
     		BTMessage m = mConversationArrayUnsent.getItem(i);
     		flat = flat + "@start@author:" + m.getAuthor() + "@timestamp" + m.getTimestamp() + "@text" + m.getText() + "@end";
