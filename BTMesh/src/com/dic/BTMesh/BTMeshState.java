@@ -58,6 +58,10 @@ public class BTMeshState extends Application {
   
   public synchronized void setConnectionState(int s){
 	  if (D) Log.d(TAG, "setConnectionState to " + Integer.toString(s));
+	  if (getConnectionState() == STATE_CONNECTED && s != STATE_CONNECTED) {
+		  if (D) Log.d(TAG, "setConnectionState returning, already connected");
+		  return;
+	  }
 	  mConnectionState = s;
   	  Intent i = new Intent();
   	  i.setAction("com.dic.BTMesh.updatestatus");

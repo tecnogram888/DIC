@@ -70,7 +70,11 @@ public class BTConnectionManager extends Activity {
 	    for (int i = 0; i < addresses.size(); i++) {
 	    	if (addresses.get(i) != null) {
 	    		showText += (addresses.get(i) + "\n");
-	    	} else {
+	    	} 
+	    	else if (i == BTMState.getService().acceptChannel) {
+	    		showText += ("listening...\n");
+	    	}
+	    	else {
 	    		showText += ("no connection\n");
 	    	}
 	    }

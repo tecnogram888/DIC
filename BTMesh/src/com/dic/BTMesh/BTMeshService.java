@@ -44,6 +44,7 @@ public class BTMeshService {
     private final BluetoothAdapter mAdapter;
     private final Handler mHandler;
     private AcceptThread mAcceptThread;
+    public int acceptChannel;
 
     //Eventually this will be some sort of node of a tree
     public ArrayList<String> mDeviceAddresses;
@@ -97,11 +98,7 @@ public class BTMeshService {
         if (D) Log.d(TAG, "BTMS start");
         
         // Start the thread to listen on a BluetoothServerSocket
-        if (mAcceptThread == null) {
-        	if (D) Log.d(TAG, "BTMS new AcceptThread");
-            mAcceptThread = new AcceptThread();
-            mAcceptThread.start();
-        }
+        startNewAcceptThread();
         BTMState.setConnectionState(STATE_LISTEN);
     }
     
@@ -156,6 +153,10 @@ public class BTMeshService {
 
     public boolean connectSocket(BluetoothDevice device, UUID uuidToTry, int channel) {
     	if (D) Log.d(TAG, "BTMS connectSocket start on channel " + Integer.toString(channel));
+    	if (mConnectedThreads.get(channel) != null) {
+    		if (D) Log.d(TAG, "BTMS connectSocket stop because channel in use");
+    		return false;
+    	}
     	BluetoothSocket tmp = null;
 		try {
 			tmp = device.createInsecureRfcommSocketToServiceRecord(uuidToTry);
@@ -198,7 +199,7 @@ public class BTMeshService {
         
 
         // Start the thread to manage the connection and perform transmissions
-        mDeviceAddresses.set(channel, device.getAddress());
+        mDeviceAddresses.set(channel, (device.getAddress() + "-" + device.getName()));
         ConnectedThread c = new ConnectedThread(socket, device, channel);
         c.start();
         // Add each connected thread to an array
@@ -206,6 +207,27 @@ public class BTMeshService {
         mConnectedThreads.set(channel, c);
 
         BTMState.setConnectionState(STATE_CONNECTED);
+        if (acceptChannel == channel) {
+            startNewAcceptThread();
+        }
+    }
+    
+    public synchronized void startNewAcceptThread() {
+    	if (D) Log.d(TAG, "BTMS startNewAcceptThread");
+    	if (numConnections() == 7) {
+    		if (D) Log.d(TAG, "BTMS cannot start new accept thread, channels all full");
+    		return;
+    	}
+    	if (mAcceptThread != null) {
+    		mAcceptThread.cancel();
+    	}
+        mAcceptThread = new AcceptThread();
+        if (acceptChannel == -1 || (mConnectedThreads.get(acceptChannel) != null)) {
+        	// redundant check, but may change in future
+        	if (D) Log.d(TAG, "BTMS cannot start new accept thread, no free channel");
+        	return;
+        }
+        mAcceptThread.start();
     }
 
     /**
@@ -256,12 +278,18 @@ public class BTMeshService {
      * (or until cancelled).
      */
     private class AcceptThread extends Thread {
-    	public int channel;
     	BluetoothServerSocket serverSocket = null;
         
         public AcceptThread() {
         	if (D) Log.d(TAG, "BTMS new acceptThread");
-        	channel = 0;
+        	acceptChannel = -1;
+        	for (int i = 0; i < 7; i++) {
+        		if (mConnectedThreads.get(i) == null) {
+        			if (D) Log.d(TAG, "BTMS new acceptthread listening on " + Integer.toString(i));
+        			acceptChannel = i;
+        			break;
+        		}
+        	}
         }
 
         public void run() {
@@ -271,23 +299,25 @@ public class BTMeshService {
             try {
             	// Listen for all 7 UUIDs
             	while (true) {
-            		if (mConnectedThreads.get(channel) == null) {
-            			if (D) Log.d(TAG, "BTMS AcceptThread listening on " + Integer.toString(channel));
-	            		serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(channel));
+            		if (mConnectedThreads.get(acceptChannel) == null) {
+            			if (D) Log.d(TAG, "BTMS AcceptThread listening on " + Integer.toString(acceptChannel));
+	            		serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(acceptChannel));
 	                    socket = serverSocket.accept();
 	                    if (socket != null) {
-	                    	if (D) Log.d(TAG, "BTMS AcceptThread connected on " + Integer.toString(channel));
+	                    	if (D) Log.d(TAG, "BTMS AcceptThread connected on " + Integer.toString(acceptChannel));
 	                    	String address = socket.getRemoteDevice().getAddress();
+	                    	String name = socket.getRemoteDevice().getName();
 		                    //mSockets.add(socket);
-		                    mDeviceAddresses.set(channel, address);
-		                    connected(socket, socket.getRemoteDevice(), channel);
+		                    mDeviceAddresses.set(acceptChannel, (address + "-" + name));
+		                    connected(socket, socket.getRemoteDevice(), acceptChannel);
 	                    }	                    
             		}
             		if (numConnections() == 7) {
             			if (D) Log.d(TAG, "BTMS accepted 7, stopping accept thread");
             			break;
             		}
-            		channel = (channel + 1) % 7;
+            		// connected() now takes care of this
+            		// acceptChannel = (acceptChannel + 1) % 7;
             	}
             } catch (IOException e) {
                 Log.e(TAG, "accept() failed", e);
@@ -336,6 +366,7 @@ public class BTMeshService {
 
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
+            BTMState.setConnectionState(STATE_CONNECTED);
         }
 
         public void run() {
