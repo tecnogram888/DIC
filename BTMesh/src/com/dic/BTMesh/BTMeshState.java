@@ -10,7 +10,7 @@ import android.util.Log;
 
 public class BTMeshState extends Application {
   private static final String TAG = "BTMeshState";
-  private static final boolean D = true;
+  private static final boolean D = false;
   // Constants that indicate the current connection state
   public static final int STATE_NONE = 0;       // we're doing nothing
   public static final int STATE_LISTEN = 1;     // now listening for incoming connections
@@ -81,7 +81,10 @@ public class BTMeshState extends Application {
 				  	+ Integer.toString(getNumGlobalDevices()) + " ("
 				  	+ Integer.toString(getNumLocalDevices()) + ")";
 		  i.putExtra("status", fullStr);
-		  break;
+          Intent j = new Intent();
+      	  j.setAction("com.dic.BTMesh.updateCM");
+      	  sendBroadcast(j);
+      	  break;
 	  case STATE_LISTEN:
 		  i.putExtra("status", getString(R.string.title_searching));
 		  break;

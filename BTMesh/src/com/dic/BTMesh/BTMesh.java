@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 public class BTMesh extends TabActivity {
     private static final String TAG = "BTMesh";
-    private static final boolean D = true;
+    private static final boolean D = false;
     
     // Message types sent from the BluetoothMeshService Handler
     public static final int CONNECTION_UPDATED = 1;
@@ -187,12 +187,6 @@ public class BTMesh extends TabActivity {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-            case CONNECTION_UPDATED:
-            	if (D) Log.d(TAG, "received a connection update message, sending to BTCM");
-            	Intent i = new Intent();
-            	i.setAction("com.dic.BTMesh.updateCM");
-            	sendBroadcast(i);
-            	break;
             case MESSAGE_READ:
             	if (D) Log.d(TAG, "received a read message, sending to chat");
                 byte[] readBuf = (byte[]) msg.obj;

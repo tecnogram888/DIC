@@ -45,7 +45,7 @@ import android.widget.Toast;
 public class BTChat extends Activity {
     // Debugging
     private static final String TAG = "BluetoothChat";
-    private static final boolean D = true;
+    private static final boolean D = false;
 
     // Message types sent from the BluetoothMeshService Handler
     public static final int MESSAGE_STATE_CHANGE = 1;

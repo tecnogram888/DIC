@@ -152,6 +152,7 @@ public class BTConnectionManager extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals("com.dic.BTMesh.updateCM")) {
+            	if (D) Log.d(TAG, "BTCMListener");
             	updateView();
                 // Do something
             }

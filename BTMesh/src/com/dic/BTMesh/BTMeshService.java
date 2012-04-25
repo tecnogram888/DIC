@@ -35,7 +35,7 @@ import android.util.Log;
 public class BTMeshService {
     // Debugging
     private static final String TAG = "BTMeshService";
-    private static final boolean D = true;
+    private static final boolean D = false;
 
     // Name for the SDP record when creating server socket
     private static final String NAME = "BTMeshService";
