@@ -216,7 +216,9 @@ public class BTMeshService {
         
 
         // Start the thread to manage the connection and perform transmissions
+        
         mLocalConnections.set(channel, device.getAddress() + ":\t" + device.getName());
+        BTMState.newEdge(device.getAddress(), device.getName());
         ConnectedThread c = new ConnectedThread(socket, device, channel);
         c.start();
         // Add each connected thread to an array
@@ -225,6 +227,7 @@ public class BTMeshService {
 
         BTMState.setConnectionState(STATE_CONNECTED);
         initAcceptThreads();
+        BTMState.sendEdges();
     }
     
     public synchronized void initAcceptThreads() {
@@ -255,6 +258,7 @@ public class BTMeshService {
     		}
     		mLocalConnections.set(i, null);
     	}
+    	BTMState.BTSEdges.clear();
         BTMState.setConnectionState(STATE_NONE);
     }
 
@@ -334,6 +338,7 @@ public class BTMeshService {
                     	String name = socket.getRemoteDevice().getName();
 	                    //mSockets.add(socket);
                     	mLocalConnections.set(channel, address + ":\t" + name);
+                    	BTMState.newEdge(address, name);
 	                    connected(socket, socket.getRemoteDevice(), channel);
                     }	                    
         		}
@@ -405,6 +410,7 @@ public class BTMeshService {
                     if (D) Log.d(TAG, "BTMS Connected Thread disconnected " + Integer.toString(channel));
                     mConnectedThreads.set(channel, null);
                     mLocalConnections.set(channel, null);
+                    BTMState.removeEdgesWith(device.getAddress());
                     BTMState.updateConnected();
                     // if we had stopped acceptthread due to no free sockets, start it up again
                     initAcceptThreads();

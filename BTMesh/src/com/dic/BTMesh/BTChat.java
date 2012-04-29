@@ -187,6 +187,7 @@ public class BTChat extends Activity {
     	String text = "";
     	boolean passOnMessage = false;
     	while(authorInd != -1) {
+    		//8 because of a colon which is silly
     		author = m.substring(authorInd+8, timestampInd);
     		timestamp = m.substring(timestampInd+10, textInd);
     		text = m.substring(textInd+5, endInd);

@@ -73,6 +73,12 @@ public class BTConnectionManager extends Activity {
 	    		showText += ("no connection\n");
 	    	}
 	    }
+	    showText += "\n\n";
+	    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
+	    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
+	    	BTStateEdge e = BTMState.BTSEdges.get(i);
+	    	showText += "\n" + e.name1 + "---" + e.name2;
+	    }
 	    textview.setText(showText);
 	    setContentView(textview);
 	}
