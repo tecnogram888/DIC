@@ -63,7 +63,7 @@ public class BTMesh extends TabActivity {
 		
 		BTMState = ((BTMeshState)getApplicationContext());
 	    BTMState.newService(mHandler);
-	    BTMState.newAdapter();
+	    BTMState.setup();
 	    
 
 

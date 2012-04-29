@@ -1,8 +1,15 @@
+/*
+THIS APPROACH STORES NODES, EDGES MAY BE BETTER
+
 package com.dic.BTMesh;
 
 import java.util.ArrayList;
 
+import android.util.Log;
+
 public class BTStateNode {
+	private static final String TAG = "BTStateNode";
+	private static final boolean D = false;
 	public BTStateNode(String address, String name) {
 		myName = name;
 		myAddress = address;
@@ -36,18 +43,30 @@ public class BTStateNode {
 	}
 	
 	public String stringify(){
-		String s = "@statenode@meA" + myAddress + "@meN" + myName;
+		String s = "@STATE@0A" + myAddress + "@0N" + myName;
 		for (int i = 0; i < 7; i++) {
 			BTStateNode n = others.get(i);
 			if (n == null) {
-				s += "@null";
+				s += "@" + Integer.toString(i) + "null";
 			}
 			else {
 				s += "@" + Integer.toString(i) + "A" + n.getAddress();
 				s += "@" + Integer.toString(i) + "N" + n.getName();
+				s += n.stringify();
+				s += "@" + Integer.toString(i) + "END" + n.getAddress();
 			}
 		}
+		s += "@0END" + myAddress;
 		return s;
+	}
+	
+	
+	
+	public void mergeNodes(String s) {
+		if (D) Log.d(TAG, "BTSN merging nodes");
+		//filter out the @STATE
+		s = s.substring(6);
+		int address
 	}
 	
 	public int totalNodes() {
@@ -80,4 +99,4 @@ public class BTStateNode {
 	private ArrayList<BTStateNode> others;
 	private String myName;
 	private String myAddress;
-}
+}*/

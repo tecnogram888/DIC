@@ -43,6 +43,7 @@ public class BTConnectionManager extends Activity {
 	    
 		BTMState = ((BTMeshState)getApplicationContext());
 		BTMListener = new BTCMListener();
+		
         if (!listenerRegistered) {
             registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updateCM"));
             listenerRegistered = true;
@@ -60,10 +61,10 @@ public class BTConnectionManager extends Activity {
 	    TextView textview = new TextView(this);
 	    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
 	    showText += "Connected to:\n";
-	    BTStateNode n = BTMState.getService().mStateNode;
+	    ArrayList<String> connections = BTMState.getService().mLocalConnections;
 	    for (int i = 0; i < 7; i++) {
-	    	if (n.getNode(i) != null) {
-	    		showText += (n.getFullName(i) + "\n");
+	    	if (connections.get(i) != null) {
+	    		showText += (connections.get(i) + "\n");
 	    	} 
 	    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
 	    		showText += ("listening...\n");

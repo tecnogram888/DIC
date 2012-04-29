@@ -21,6 +21,9 @@ public class BTMeshState extends Application {
   private BluetoothAdapter mBluetoothAdapter = null;
   
   private int mConnectionState;
+
+  
+  private ArrayList<BTStateEdge> BTSEdges;
   
   
   public void newService(Handler mHandler){
@@ -28,8 +31,18 @@ public class BTMeshState extends Application {
       mService = new BTMeshService(this, mHandler, this);
   }
   
-  public void newAdapter(){
+  public void setup(){
       mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+      BTSEdges = new ArrayList<BTStateEdge>();
+  }
+  
+  public String edgesToString(){
+	  String s = "@EDGES";
+	  for (int i = 0; i < BTSEdges.size(); i++) {
+		  BTStateEdge e = BTSEdges.get(i);
+		  s += "@start@addr1" + e.address1 + "@name1" + e.name1 + "@addr2" + e.address2 + "@name2" + e.name2 + "@end";
+	  }
+	  return s;
   }
   
   public BTMeshService getService(){
@@ -45,7 +58,7 @@ public class BTMeshState extends Application {
   }
 		
   public int getNumGlobalDevices(){
-	return mService.mStateNode.totalNodes();
+	return -1;
   }
   
   public synchronized void updateConnected(){
