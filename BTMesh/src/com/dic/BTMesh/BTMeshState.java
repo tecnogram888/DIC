@@ -3,6 +3,7 @@ package com.dic.BTMesh;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.lang.Math;
 
 import android.app.Application;
 import android.bluetooth.BluetoothAdapter;
@@ -138,7 +139,7 @@ public class BTMeshState extends Application {
 		uniqueAddrs.add(e.address1);
 		uniqueAddrs.add(e.address2);
 	}
-	return uniqueAddrs.size() - 1;
+	return Math.max(0, uniqueAddrs.size() - 1);
   }
   
   public synchronized void updateConnected(){

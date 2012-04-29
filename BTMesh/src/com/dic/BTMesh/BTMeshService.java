@@ -83,6 +83,10 @@ public class BTMeshService {
     	BTMState = s;
     	//context = c;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        mAdapter.disable();
+        while(!mAdapter.isEnabled()) {
+        	mAdapter.enable();
+        }
         BTMState.setConnectionState(STATE_NONE);
         mHandler = handler;
         mLocalConnections = new ArrayList<String>();

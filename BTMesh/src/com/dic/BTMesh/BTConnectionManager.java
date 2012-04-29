@@ -60,7 +60,18 @@ public class BTConnectionManager extends Activity {
 	public void updateView() {
 	    TextView textview = new TextView(this);
 	    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
-	    showText += "Connected to:\n";
+
+	    /* COOL GRAPH GOES HERE INSTEAD*/
+	    showText += "\n\n";
+	    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
+	    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
+	    	BTStateEdge e = BTMState.BTSEdges.get(i);
+	    	showText += "\n" + e.name1 + "---" + e.name2;
+	    }
+	    /* END COOL GRAPH LOCATION */
+	    
+	    showText += "\n\n\n";
+	    showText += "Local Connections:\n";
 	    ArrayList<String> connections = BTMState.getService().mLocalConnections;
 	    for (int i = 0; i < 7; i++) {
 	    	if (connections.get(i) != null) {
@@ -73,12 +84,8 @@ public class BTConnectionManager extends Activity {
 	    		showText += ("no connection\n");
 	    	}
 	    }
-	    showText += "\n\n";
-	    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
-	    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
-	    	BTStateEdge e = BTMState.BTSEdges.get(i);
-	    	showText += "\n" + e.name1 + "---" + e.name2;
-	    }
+	    
+	    
 	    textview.setText(showText);
 	    setContentView(textview);
 	}
