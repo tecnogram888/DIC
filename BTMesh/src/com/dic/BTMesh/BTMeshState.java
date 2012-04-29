@@ -45,7 +45,7 @@ public class BTMeshState extends Application {
   }
 		
   public int getNumGlobalDevices(){
-	return -1;
+	return mService.mStateNode.totalNodes();
   }
   
   public synchronized void updateConnected(){

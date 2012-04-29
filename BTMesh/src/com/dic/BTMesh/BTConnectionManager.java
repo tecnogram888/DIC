@@ -58,18 +58,12 @@ public class BTConnectionManager extends Activity {
 	
 	public void updateView() {
 	    TextView textview = new TextView(this);
-	    String showText = "Connected to:\n";
-/*	    ArrayList<ConnectedThread> connections = BTMState.getService().mConnectedThreads;
-	    for (int i = 0; i < connections.size(); i++){
-	    	ConnectedThread c = connections.get(i);
-	    	if (c != null) {
-	    		showText += (Integer.toString(c.index) + " " + c.deviceName + ":\t" + c.deviceAddress + "\n");
-	    	}
-	    }*/
-	    ArrayList<String> addresses = BTMState.getService().mDeviceAddresses;
-	    for (int i = 0; i < addresses.size(); i++) {
-	    	if (addresses.get(i) != null) {
-	    		showText += (addresses.get(i) + "\n");
+	    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
+	    showText += "Connected to:\n";
+	    BTStateNode n = BTMState.getService().mStateNode;
+	    for (int i = 0; i < 7; i++) {
+	    	if (n.getNode(i) != null) {
+	    		showText += (n.getFullName(i) + "\n");
 	    	} 
 	    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
 	    		showText += ("listening...\n");
