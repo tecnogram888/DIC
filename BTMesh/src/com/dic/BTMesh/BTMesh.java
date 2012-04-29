@@ -87,7 +87,7 @@ public class BTMesh extends TabActivity {
 	    intent = new Intent().setClass(this, BTFileManager.class);
 	    
 	    spec = tabHost.newTabSpec("fileManager").setIndicator("FileManager",
-	                      res.getDrawable(R.drawable.ic_tab_chat))
+	                      res.getDrawable(R.drawable.ic_tab_filemanager))
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
@@ -96,7 +96,7 @@ public class BTMesh extends TabActivity {
 	    intent = new Intent().setClass(this, FileChooser.class);
 	    
 	    spec = tabHost.newTabSpec("FileDebug").setIndicator("FileDebug",
-	                      res.getDrawable(R.drawable.ic_tab_chat))
+	                      res.getDrawable(R.drawable.ic_tab_filemanager))
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 	    
