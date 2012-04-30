@@ -30,6 +30,7 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 //import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -83,10 +84,31 @@ public class BTMeshService {
     	BTMState = s;
     	//context = c;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
-        mAdapter.disable();
-        while(!mAdapter.isEnabled()) {
+        if (mAdapter.isEnabled()) {
+	        mAdapter.disable();
+	        while(mAdapter.isEnabled()) {
+	        	try {
+	        		if (D) Log.d(TAG, "waiting for adapter to disable");
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+	        mAdapter.enable();
+        } else {
         	mAdapter.enable();
         }
+        while(!mAdapter.isEnabled()) {
+        	try {
+        		if (D) Log.d(TAG, "waiting for adapter to enable");
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+
         BTMState.setConnectionState(STATE_NONE);
         mHandler = handler;
         mLocalConnections = new ArrayList<String>();
@@ -350,6 +372,7 @@ public class BTMeshService {
                 Log.e(TAG, "accept() failed", e);
             }
             if (D) Log.i(TAG, "END mAcceptThread " + Integer.toString(channel));
+            mAcceptThreads.set(channel, null);
         }
 
         public void cancel() {

@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -35,7 +36,7 @@ public class BTConnectionManager extends Activity {
     private BTMeshState BTMState;
     private BTCMListener BTMListener;
     private boolean listenerRegistered = false;
-    
+    private boolean showLocal = false;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -58,36 +59,41 @@ public class BTConnectionManager extends Activity {
 	}
 	
 	public void updateView() {
-	    TextView textview = new TextView(this);
-	    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
-
-	    /* COOL GRAPH GOES HERE INSTEAD*/
-	    showText += "\n\n";
-	    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
-	    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
-	    	BTStateEdge e = BTMState.BTSEdges.get(i);
-	    	showText += "\n" + e.name1 + "---" + e.name2;
-	    }
-	    /* END COOL GRAPH LOCATION */
-	    
-	    showText += "\n\n\n";
-	    showText += "Local Connections:\n";
-	    ArrayList<String> connections = BTMState.getService().mLocalConnections;
-	    for (int i = 0; i < 7; i++) {
-	    	if (connections.get(i) != null) {
-	    		showText += (connections.get(i) + "\n");
-	    	} 
-	    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
-	    		showText += ("listening...\n");
-	    	}
-	    	else {
-	    		showText += ("no connection\n");
-	    	}
-	    }
-	    
-	    
-	    textview.setText(showText);
-	    setContentView(textview);
+		if (showLocal || BTMState.BTSEdges.size() == 0) {
+		    TextView textview = new TextView(this);
+		    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
+	
+		    /* COOL GRAPH GOES HERE INSTEAD*/
+		    showText += "\n\n";
+		    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
+		    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
+		    	BTStateEdge e = BTMState.BTSEdges.get(i);
+		    	showText += "\n" + e.name1 + "---" + e.name2;
+		    }
+		    /* END COOL GRAPH LOCATION */
+		    
+		    showText += "\n\n\n";
+		    showText += "Local Connections:\n";
+		    ArrayList<String> connections = BTMState.getService().mLocalConnections;
+		    for (int i = 0; i < 7; i++) {
+		    	if (connections.get(i) != null) {
+		    		showText += (connections.get(i) + "\n");
+		    	} 
+		    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
+		    		showText += ("listening...\n");
+		    	}
+		    	else {
+		    		showText += ("no connection\n");
+		    	}
+		    }
+		    textview.setText(showText);
+		    setContentView(textview);
+		}
+		else {
+		    BTDrawGraph connectionGraph = new BTDrawGraph(this, BTMState.BTSEdges);
+	        connectionGraph.setBackgroundColor(Color.BLACK);
+	        setContentView(connectionGraph);
+		}
 	}
 
 	
@@ -152,6 +158,10 @@ public class BTConnectionManager extends Activity {
             // Ensure this device is discoverable by others
             ensureDiscoverable();
             return true;
+        case R.id.switchcmview:
+        	showLocal = !showLocal;
+        	updateView();
+        	return true;
         }
         return false;
     }

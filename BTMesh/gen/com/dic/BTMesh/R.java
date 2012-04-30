@@ -31,6 +31,7 @@ public final class R {
         public static final int new_devices=0x7f060008;
         public static final int paired_devices=0x7f060006;
         public static final int scan=0x7f06000c;
+        public static final int switchcmview=0x7f06000e;
         public static final int title_left_text=0x7f060003;
         public static final int title_new_devices=0x7f060007;
         public static final int title_paired_devices=0x7f060005;
@@ -66,6 +67,7 @@ public final class R {
         /**   BluetoothChat 
          */
         public static final int send=0x7f040001;
+        public static final int switchcmview=0x7f040012;
         public static final int title_broadcasting=0x7f040006;
         public static final int title_connected=0x7f040007;
         public static final int title_connecting=0x7f040004;
