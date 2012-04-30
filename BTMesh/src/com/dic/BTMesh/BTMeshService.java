@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
-//import java.util.Timer;
-//import java.util.TimerTask;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -76,9 +74,6 @@ public class BTMeshService {
     //private boolean timerRunning = false;
     //private autoConnectTask acTask;
     //Timer acTimer;
-
-    private long RETRY_TIME = 30000;
-    private long START_TIME = 5000;
 
     public BTMeshService(Context c, Handler handler, BTMeshState s) {
     	BTMState = s;
@@ -140,9 +135,6 @@ public class BTMeshService {
         // Start the thread to listen on a BluetoothServerSocket
         initAcceptThreads();
         BTMState.setConnectionState(STATE_LISTEN);
-        //acTimer = new Timer();
-        //acTimer.scheduleAtFixedRate(new autoConnectTask(), START_TIME, RETRY_TIME);
-        //timerRunning = true;
     }
     
     public synchronized int numConnections() {
@@ -325,16 +317,7 @@ public class BTMeshService {
         }
     }*/
     
-/*    public class autoConnectTask extends TimerTask {
-        public void run() {
-        	ensureDiscoverable();
-            if (mAdapter.isDiscovering()) {
-                mAdapter.cancelDiscovery();
-            }
-        	mAdapter.startDiscovery();
-        	//do discoverable, cross check with blacklist
-        }
-    }*/
+
     /**
      * This thread runs while listening for incoming connections. It behaves
      * like a server-side client. It runs until a connection is accepted
@@ -385,7 +368,9 @@ public class BTMeshService {
         public void cancel() {
             if (D) Log.d(TAG, "cancel " + this);
             try {
-                serverSocket.close();
+            	if (serverSocket != null) {
+            		serverSocket.close();
+            	}
             } catch (IOException e) {
                 Log.e(TAG, "close() of server failed", e);
             }

@@ -80,14 +80,18 @@ public class BTMeshState extends Application {
   
   public void removeEdgesWith(String addr2) {
 	  Iterator<BTStateEdge> itr = BTSEdges.iterator();
+	  boolean passOnMessage = false;
 	  while (itr.hasNext()){
 		  BTStateEdge e = itr.next();
 		  if (e.address1.equals(addr2) || e.address2.equals(addr2)){
+			  passOnMessage = true;
 			  itr.remove();
 		  }
 	  }
-	  updateConnected();
-	  sendDisconnected(addr2);
+	  if (passOnMessage) {
+		  updateConnected();
+		  sendDisconnected(addr2);
+	  }
   }
   
   public void addEdges(String in){

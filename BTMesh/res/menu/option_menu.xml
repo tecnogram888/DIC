@@ -20,6 +20,9 @@
     <item android:id="@+id/discoverable"
           android:icon="@android:drawable/ic_menu_mylocation"
           android:title="@string/discoverable" />
+    <item android:id="@+id/toggleautoconnect"
+          android:icon="@android:drawable/ic_menu_rotate"
+          android:title="@string/toggleautoconnect" />
     <item android:id="@+id/switchcmview"
           android:icon="@android:drawable/ic_menu_compass"
           android:title="@string/switchcmview" />
