@@ -93,6 +93,7 @@ public class BTMeshState extends Application {
   public void addEdges(String in){
 	  String e = in.substring(6);
 	  if (e.startsWith("@DC@addr")) {
+		  if (D) Log.d(TAG, "got a disconnect edge message");
 		  removeEdgesWith(e.substring(8));
 		  return;
 	  }
@@ -107,8 +108,6 @@ public class BTMeshState extends Application {
 	  String name2 = "";
 	  boolean passOnMessage = false;
 	  while (addr1Ind != -1) {
-		  if(D) Log.d(TAG, "add message");
-		  if(D) Log.d(TAG, e);
 		  addr1 = e.substring(addr1Ind + 6, name1Ind);
 		  name1 = e.substring(name1Ind + 6, addr2Ind);
 		  addr2 = e.substring(addr2Ind + 6, name2Ind);
