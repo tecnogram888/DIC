@@ -63,14 +63,12 @@ public class BTConnectionManager extends Activity {
 		    TextView textview = new TextView(this);
 		    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
 	
-		    /* COOL GRAPH GOES HERE INSTEAD*/
 		    showText += "\n\n";
 		    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
 		    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
 		    	BTStateEdge e = BTMState.BTSEdges.get(i);
 		    	showText += "\n" + e.name1 + "---" + e.name2;
 		    }
-		    /* END COOL GRAPH LOCATION */
 		    
 		    showText += "\n\n\n";
 		    showText += "Local Connections:\n";
@@ -79,8 +77,13 @@ public class BTConnectionManager extends Activity {
 		    	if (connections.get(i) != null) {
 		    		showText += (connections.get(i) + "\n");
 		    	} 
-		    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
+		    	else if (BTMState.getService().mAcceptThreads.get(i) != null && 
+		    			BTMState.getService().mAcceptThreads.get(i).isRunning()) {
 		    		showText += ("listening...\n");
+		    	}
+		    	else if (BTMState.getService().mAcceptThreads.get(i) != null &&
+		    			!BTMState.getService().mAcceptThreads.get(i).isRunning()){
+		    		showText += ("not listening...\n");
 		    	}
 		    	else {
 		    		showText += ("no connection\n");

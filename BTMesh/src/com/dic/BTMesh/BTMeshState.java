@@ -53,6 +53,11 @@ public class BTMeshState extends Application {
 	  getService().write(send);
   }
   
+  public void sendDisconnected(String addr){
+	  byte[] send = ("@EDGES@DC@addr" + addr).getBytes();
+	  getService().write(send);
+  }
+  
   public boolean existsEdge(String addr1, String addr2) {
 	  for (int i = 0; i < BTSEdges.size(); i++) {
 		  if ((BTSEdges.get(i).address1.equals(addr1) &&
@@ -82,10 +87,15 @@ public class BTMeshState extends Application {
 		  }
 	  }
 	  updateConnected();
+	  sendDisconnected(addr2);
   }
   
   public void addEdges(String in){
 	  String e = in.substring(6);
+	  if (e.startsWith("@DC@addr")) {
+		  removeEdgesWith(e.substring(8));
+		  return;
+	  }
 	  int addr1Ind = e.indexOf("@addr1", 0);
 	  int name1Ind = e.indexOf("@name1", 0);
 	  int addr2Ind = e.indexOf("@addr2", 0);

@@ -340,13 +340,18 @@ public class BTMeshService {
      * like a server-side client. It runs until a connection is accepted
      * (or until cancelled).
      */
-    private class AcceptThread extends Thread {
+    public class AcceptThread extends Thread {
     	BluetoothServerSocket serverSocket = null;
     	int channel = -1;
+    	boolean running = false;
         
         public AcceptThread(int inChannel) {
         	if (D) Log.d(TAG, "BTMS new acceptThread");
         	channel = inChannel;
+        }
+        
+        public boolean isRunning() {
+        	return running;
         }
 
         public void run() {
@@ -354,6 +359,7 @@ public class BTMeshService {
             setName("AcceptThread");
             BluetoothSocket socket = null;
             try {
+            	running = true;
         		if (mConnectedThreads.get(channel) == null) {
         			if (D) Log.d(TAG, "BTMS AcceptThread listening on " + Integer.toString(channel));
             		serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(channel));
@@ -372,6 +378,7 @@ public class BTMeshService {
                 Log.e(TAG, "accept() failed", e);
             }
             if (D) Log.i(TAG, "END mAcceptThread " + Integer.toString(channel));
+            running = false;
             mAcceptThreads.set(channel, null);
         }
 
