@@ -58,6 +58,9 @@
         </activity>
         <activity android:name=".BTFileManager" >
         </activity>
+            <intent-filter>
+                <action android:name="com.dic.BTMesh.processMessage" />
+            </intent-filter>
                 <activity android:name=".FileChooser" >
         </activity>
     </application>

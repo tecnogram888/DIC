@@ -23,7 +23,7 @@ import android.widget.Toast;
 
 public class BTMesh extends TabActivity {
     private static final String TAG = "BTMesh";
-    private static final boolean D = false;
+    private static final boolean D = true;
     
     // Message types sent from the BluetoothMeshService Handler
     public static final int CONNECTION_UPDATED = 1;
@@ -192,10 +192,12 @@ public class BTMesh extends TabActivity {
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
+                if (D) Log.d(TAG,readMessage);
                 if (readMessage.length() > 0 ) {
                     if (readMessage.startsWith("@BTFILEMANAGER")) {
+                    	if (D) Log.d(TAG, "BTFILEMANAGER IN HANDLER BTMESH");
                     	Intent btFM = new Intent();
-                    	btFM.setAction("com.dic.BTFileManager.processMessage");
+                    	btFM.setAction("com.dic.BTMesh.processMessage");
                     	btFM.putExtra("message", readMessage);
                     	sendBroadcast(btFM);
                     } else if (readMessage.startsWith("@CHAT")){
