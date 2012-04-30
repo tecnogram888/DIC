@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -35,7 +36,7 @@ public class BTConnectionManager extends Activity {
     private BTMeshState BTMState;
     private BTCMListener BTMListener;
     private boolean listenerRegistered = false;
-    
+    private boolean showLocal = false;
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,7 @@ public class BTConnectionManager extends Activity {
 	    
 		BTMState = ((BTMeshState)getApplicationContext());
 		BTMListener = new BTCMListener();
+		
         if (!listenerRegistered) {
             registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.updateCM"));
             listenerRegistered = true;
@@ -57,29 +59,44 @@ public class BTConnectionManager extends Activity {
 	}
 	
 	public void updateView() {
-	    TextView textview = new TextView(this);
-	    String showText = "Connected to:\n";
-/*	    ArrayList<ConnectedThread> connections = BTMState.getService().mConnectedThreads;
-	    for (int i = 0; i < connections.size(); i++){
-	    	ConnectedThread c = connections.get(i);
-	    	if (c != null) {
-	    		showText += (Integer.toString(c.index) + " " + c.deviceName + ":\t" + c.deviceAddress + "\n");
-	    	}
-	    }*/
-	    ArrayList<String> addresses = BTMState.getService().mDeviceAddresses;
-	    for (int i = 0; i < addresses.size(); i++) {
-	    	if (addresses.get(i) != null) {
-	    		showText += (addresses.get(i) + "\n");
-	    	} 
-	    	else if (BTMState.getService().mAcceptThreads.get(i) != null) {
-	    		showText += ("listening...\n");
-	    	}
-	    	else {
-	    		showText += ("no connection\n");
-	    	}
-	    }
-	    textview.setText(showText);
-	    setContentView(textview);
+		if (showLocal || BTMState.BTSEdges.size() == 0) {
+		    TextView textview = new TextView(this);
+		    String showText = "My Name: " + BTMState.getBluetoothAdapter().getName() + "\n\n";
+	
+		    showText += "\n\n";
+		    showText += Integer.toString(BTMState.BTSEdges.size()) + " Edges\n";
+		    for (int i = 0; i < BTMState.BTSEdges.size(); i++) {
+		    	BTStateEdge e = BTMState.BTSEdges.get(i);
+		    	showText += "\n" + e.name1 + "---" + e.name2;
+		    }
+		    
+		    showText += "\n\n\n";
+		    showText += "Local Connections:\n";
+		    ArrayList<String> connections = BTMState.getService().mLocalConnections;
+		    for (int i = 0; i < 7; i++) {
+		    	if (connections.get(i) != null) {
+		    		showText += (connections.get(i) + "\n");
+		    	} 
+		    	else if (BTMState.getService().mAcceptThreads.get(i) != null && 
+		    			BTMState.getService().mAcceptThreads.get(i).isRunning()) {
+		    		showText += ("listening...\n");
+		    	}
+		    	else if (BTMState.getService().mAcceptThreads.get(i) != null &&
+		    			!BTMState.getService().mAcceptThreads.get(i).isRunning()){
+		    		showText += ("not listening...\n");
+		    	}
+		    	else {
+		    		showText += ("no connection\n");
+		    	}
+		    }
+		    textview.setText(showText);
+		    setContentView(textview);
+		}
+		else {
+		    BTDrawGraph connectionGraph = new BTDrawGraph(this, BTMState.BTSEdges);
+	        connectionGraph.setBackgroundColor(Color.BLACK);
+	        setContentView(connectionGraph);
+		}
 	}
 
 	
@@ -144,6 +161,10 @@ public class BTConnectionManager extends Activity {
             // Ensure this device is discoverable by others
             ensureDiscoverable();
             return true;
+        case R.id.switchcmview:
+        	showLocal = !showLocal;
+        	updateView();
+        	return true;
         }
         return false;
     }

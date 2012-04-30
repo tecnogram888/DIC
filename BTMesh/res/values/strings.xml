@@ -39,4 +39,5 @@
     <!-- Options Menu -->
     <string name="connect">Connect a device</string>
     <string name="discoverable">Make discoverable</string>
+    <string name="switchcmview">Global/Local</string>
 </resources>

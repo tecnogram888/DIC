@@ -63,7 +63,7 @@ public class BTMesh extends TabActivity {
 		
 		BTMState = ((BTMeshState)getApplicationContext());
 	    BTMState.newService(mHandler);
-	    BTMState.newAdapter();
+	    BTMState.setup();
 	    
 
 
@@ -87,7 +87,7 @@ public class BTMesh extends TabActivity {
 	    intent = new Intent().setClass(this, BTFileManager.class);
 	    
 	    spec = tabHost.newTabSpec("fileManager").setIndicator("FileManager",
-	                      res.getDrawable(R.drawable.ic_tab_chat))
+	                      res.getDrawable(R.drawable.ic_tab_filemanager))
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 
@@ -96,7 +96,7 @@ public class BTMesh extends TabActivity {
 	    intent = new Intent().setClass(this, FileChooser.class);
 	    
 	    spec = tabHost.newTabSpec("FileDebug").setIndicator("FileDebug",
-	                      res.getDrawable(R.drawable.ic_tab_chat))
+	                      res.getDrawable(R.drawable.ic_tab_filemanager))
 	                  .setContent(intent);
 	    tabHost.addTab(spec);
 	    
@@ -205,10 +205,14 @@ public class BTMesh extends TabActivity {
                     	i2.setAction("com.dic.BTMesh.addmessages");
                     	i2.putExtra("messages", readMessage);
                     	sendBroadcast(i2);
+                    } else if (readMessage.startsWith("@EDGES")) {
+                    	BTMState.addEdges(readMessage);
+                    } else {
+                    	if (D) Log.d(TAG, "received weird message:" + readMessage);
                     }
                 }
                 else {
-                	if (D) Log.d(TAG, "message is empty, not sending actually");
+                	if (D) Log.d(TAG, "message is empty, not doing anything");
                 }
                 break;
             }

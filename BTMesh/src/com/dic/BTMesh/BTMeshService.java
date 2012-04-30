@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+//import java.util.Timer;
+//import java.util.TimerTask;
 import java.util.UUID;
 
 import android.bluetooth.BluetoothAdapter;
@@ -27,6 +29,8 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+//import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -35,7 +39,7 @@ import android.util.Log;
 public class BTMeshService {
     // Debugging
     private static final String TAG = "BTMeshService";
-    private static final boolean D = false;
+    private static final boolean D = true;
 
     // Name for the SDP record when creating server socket
     private static final String NAME = "BTMeshService";
@@ -46,7 +50,7 @@ public class BTMeshService {
 
 
     //Eventually the two below will be some sort of node of a tree
-    public ArrayList<String> mDeviceAddresses;
+    public ArrayList<String> mLocalConnections;
     public ArrayList<AcceptThread> mAcceptThreads;    
     private ArrayList<ConnectedThread> mConnectedThreads;
     /**
@@ -64,21 +68,55 @@ public class BTMeshService {
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
     private BTMeshState BTMState;
-    /**
-     * Constructor. Prepares a new BluetoothChat session.
-     * @param context  The UI Activity Context
-     * @param handler  A Handler to send messages back to the UI Activity
-     */
-    public BTMeshService(Context context, Handler handler, BTMeshState s) {
+//    private Context context;
+    
+    // AutoConnect Variables
+    //private ArrayList<String> unConnectableDevices;
+    //public boolean autoConnectEnabled = false;
+    //private boolean timerRunning = false;
+    //private autoConnectTask acTask;
+    //Timer acTimer;
+
+    private long RETRY_TIME = 30000;
+    private long START_TIME = 5000;
+
+    public BTMeshService(Context c, Handler handler, BTMeshState s) {
     	BTMState = s;
+    	//context = c;
         mAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mAdapter.isEnabled()) {
+	        mAdapter.disable();
+	        while(mAdapter.isEnabled()) {
+	        	try {
+	        		if (D) Log.d(TAG, "waiting for adapter to disable");
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	        }
+	        mAdapter.enable();
+        } else {
+        	mAdapter.enable();
+        }
+        while(!mAdapter.isEnabled()) {
+        	try {
+        		if (D) Log.d(TAG, "waiting for adapter to enable");
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+
         BTMState.setConnectionState(STATE_NONE);
         mHandler = handler;
-        mDeviceAddresses = new ArrayList<String>();
+        mLocalConnections = new ArrayList<String>();
         mAcceptThreads = new ArrayList<AcceptThread>();
         mConnectedThreads = new ArrayList<ConnectedThread>();
+        //unConnectableDevices = new ArrayList<String>();
         for (int i = 0; i < 7; i++) {
-        	mDeviceAddresses.add(null);
+        	mLocalConnections.add(null);
         	mAcceptThreads.add(null);
         	mConnectedThreads.add(null);
         }
@@ -102,6 +140,9 @@ public class BTMeshService {
         // Start the thread to listen on a BluetoothServerSocket
         initAcceptThreads();
         BTMState.setConnectionState(STATE_LISTEN);
+        //acTimer = new Timer();
+        //acTimer.scheduleAtFixedRate(new autoConnectTask(), START_TIME, RETRY_TIME);
+        //timerRunning = true;
     }
     
     public synchronized int numConnections() {
@@ -201,7 +242,9 @@ public class BTMeshService {
         
 
         // Start the thread to manage the connection and perform transmissions
-        mDeviceAddresses.set(channel, (device.getAddress() + "-" + device.getName()));
+        
+        mLocalConnections.set(channel, device.getAddress() + ":\t" + device.getName());
+        BTMState.newEdge(device.getAddress(), device.getName());
         ConnectedThread c = new ConnectedThread(socket, device, channel);
         c.start();
         // Add each connected thread to an array
@@ -210,6 +253,7 @@ public class BTMeshService {
 
         BTMState.setConnectionState(STATE_CONNECTED);
         initAcceptThreads();
+        BTMState.sendEdges();
     }
     
     public synchronized void initAcceptThreads() {
@@ -238,8 +282,9 @@ public class BTMeshService {
     			mConnectedThreads.get(i).cancel();
     			mConnectedThreads.set(i, null);
     		}
-    		mDeviceAddresses.set(i, null);
+    		mLocalConnections.set(i, null);
     	}
+    	BTMState.BTSEdges.clear();
         BTMState.setConnectionState(STATE_NONE);
     }
 
@@ -269,19 +314,44 @@ public class BTMeshService {
     		}
     	}
     }
-
+    
+    /*private void ensureDiscoverable() {
+        if(D) Log.d(TAG, "ensure discoverable");
+        if (BTMState.getBluetoothAdapter().getScanMode() !=
+            BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
+            Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+            discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+            context.startActivity(discoverableIntent);
+        }
+    }*/
+    
+/*    public class autoConnectTask extends TimerTask {
+        public void run() {
+        	ensureDiscoverable();
+            if (mAdapter.isDiscovering()) {
+                mAdapter.cancelDiscovery();
+            }
+        	mAdapter.startDiscovery();
+        	//do discoverable, cross check with blacklist
+        }
+    }*/
     /**
      * This thread runs while listening for incoming connections. It behaves
      * like a server-side client. It runs until a connection is accepted
      * (or until cancelled).
      */
-    private class AcceptThread extends Thread {
+    public class AcceptThread extends Thread {
     	BluetoothServerSocket serverSocket = null;
     	int channel = -1;
+    	boolean running = false;
         
         public AcceptThread(int inChannel) {
         	if (D) Log.d(TAG, "BTMS new acceptThread");
         	channel = inChannel;
+        }
+        
+        public boolean isRunning() {
+        	return running;
         }
 
         public void run() {
@@ -289,6 +359,7 @@ public class BTMeshService {
             setName("AcceptThread");
             BluetoothSocket socket = null;
             try {
+            	running = true;
         		if (mConnectedThreads.get(channel) == null) {
         			if (D) Log.d(TAG, "BTMS AcceptThread listening on " + Integer.toString(channel));
             		serverSocket = mAdapter.listenUsingInsecureRfcommWithServiceRecord(NAME, mUuids.get(channel));
@@ -298,7 +369,8 @@ public class BTMeshService {
                     	String address = socket.getRemoteDevice().getAddress();
                     	String name = socket.getRemoteDevice().getName();
 	                    //mSockets.add(socket);
-	                    mDeviceAddresses.set(channel, (address + "-" + name));
+                    	mLocalConnections.set(channel, address + ":\t" + name);
+                    	BTMState.newEdge(address, name);
 	                    connected(socket, socket.getRemoteDevice(), channel);
                     }	                    
         		}
@@ -306,6 +378,8 @@ public class BTMeshService {
                 Log.e(TAG, "accept() failed", e);
             }
             if (D) Log.i(TAG, "END mAcceptThread " + Integer.toString(channel));
+            running = false;
+            mAcceptThreads.set(channel, null);
         }
 
         public void cancel() {
@@ -369,7 +443,8 @@ public class BTMeshService {
                 } catch (IOException e) {
                     if (D) Log.d(TAG, "BTMS Connected Thread disconnected " + Integer.toString(channel));
                     mConnectedThreads.set(channel, null);
-                    mDeviceAddresses.set(channel, null);
+                    mLocalConnections.set(channel, null);
+                    BTMState.removeEdgesWith(device.getAddress());
                     BTMState.updateConnected();
                     // if we had stopped acceptthread due to no free sockets, start it up again
                     initAcceptThreads();

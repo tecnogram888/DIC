@@ -12,10 +12,13 @@ public final class R {
     }
     public static final class drawable {
         public static final int app_icon=0x7f020000;
-        public static final int ic_tab_artists_grey=0x7f020001;
-        public static final int ic_tab_artists_white=0x7f020002;
-        public static final int ic_tab_chat=0x7f020003;
+        public static final int chat_icon=0x7f020001;
+        public static final int ic_tab_chat=0x7f020002;
+        public static final int ic_tab_chat_icon=0x7f020003;
         public static final int ic_tab_connectionmanager=0x7f020004;
+        public static final int ic_tab_connectionmanager_icon=0x7f020005;
+        public static final int ic_tab_file_icon=0x7f020006;
+        public static final int ic_tab_filemanager=0x7f020007;
     }
     public static final class id {
         public static final int TextView01=0x7f06000a;
@@ -28,6 +31,7 @@ public final class R {
         public static final int new_devices=0x7f060008;
         public static final int paired_devices=0x7f060006;
         public static final int scan=0x7f06000c;
+        public static final int switchcmview=0x7f06000e;
         public static final int title_left_text=0x7f060003;
         public static final int title_new_devices=0x7f060007;
         public static final int title_paired_devices=0x7f060005;
@@ -63,6 +67,7 @@ public final class R {
         /**   BluetoothChat 
          */
         public static final int send=0x7f040001;
+        public static final int switchcmview=0x7f040012;
         public static final int title_broadcasting=0x7f040006;
         public static final int title_connected=0x7f040007;
         public static final int title_connecting=0x7f040004;
