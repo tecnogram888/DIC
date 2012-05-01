@@ -12,14 +12,29 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.dic.BTMesh.BTChat.BTChatListener;
+
 import android.app.ListActivity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class FileChooser extends ListActivity {
 
+
+public class FileChooser extends ListActivity {
+	private static final String TAG = "BTMeshFileChooser";
+	private static final boolean D = true;
+	
+	private BTFileListener BTMListener;
+    private BTMeshState BTMState;
+    private boolean listenerRegistered = false;
+    
 	private File currentDir;
 	private FileArrayAdapter adapter;
 	@Override
@@ -27,6 +42,13 @@ public class FileChooser extends ListActivity {
 		super.onCreate(savedInstanceState);
 		currentDir = new File("/sdcard/");
 		fill(currentDir);
+		BTMState = ((BTMeshState)getApplicationContext());
+		BTMListener = new BTFileListener();
+        if (!listenerRegistered) {
+            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.filechooser"));
+            listenerRegistered = true;
+        }
+		
 	}
 	private void fill(File f)
 	{
@@ -186,11 +208,16 @@ public class FileChooser extends ListActivity {
 	 */
 	
 	public byte[] readFileAsByteArray(Option o) {
-		String sp = "BTMESHSUPERPOWERFULL";
-		String master = ""+o.getName() + sp + o.getData() + sp + o.getPath();
+		String sp = "@FILE";
+		//String sp = "BTMESHSUPERPOWERFULL";
+		String master = sp+o.getName() + sp + o.getData() + sp + o.getPath();
 		
         byte[] byteArray = master.getBytes();
-		
+        
+        //Initialize a BTMesh connection and broadcast
+        BTMeshState BTMState = ((BTMeshState)getApplicationContext());
+        BTMState.getService().write(byteArray);
+        
 		return byteArray;
 	}
 	
@@ -204,7 +231,8 @@ public class FileChooser extends ListActivity {
 	public void writeFileAsByteArray(byte[] byteArray) {
 		
 		String master = new String(byteArray);
-		String sp = "BTMESHSUPERPOWERFULL";
+		//String sp = "BTMESHSUPERPOWERFULL";
+		String sp = "@FILE";
 		String[] tmp = master.split(sp);
 		
 		Option o = new Option(tmp[0],tmp[1],tmp[2]);
@@ -328,10 +356,20 @@ public class FileChooser extends ListActivity {
 			return null;
 		}
 	}
+	
+    protected class BTFileListener extends BroadcastReceiver {
 
-
-
-
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (D) Log.d(TAG, "receive " + intent.getAction());
+            if (intent.getAction().equals("com.dic.BTMesh.filechooser")) {
+                if(D) Log.d(TAG, "BTFile received file");
+            	String messages = intent.getStringExtra("messages");
+            	//addMessagesToConvo(messages);
+                // Do something
+            }
+        }
+    }
 
 
 }

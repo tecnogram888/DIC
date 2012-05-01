@@ -205,7 +205,14 @@ public class BTMesh extends TabActivity {
                     	i2.setAction("com.dic.BTMesh.addmessages");
                     	i2.putExtra("messages", readMessage);
                     	sendBroadcast(i2);
-                    } else if (readMessage.startsWith("@EDGES")) {
+                    } else if (readMessage.startsWith("@FILE")){
+                    	Intent i2 = new Intent();
+                    	i2.setAction("com.dic.BTMesh.filechooser");
+                    	i2.putExtra("messages", readMessage);
+                    	sendBroadcast(i2);
+                    } 
+                    
+                    else if (readMessage.startsWith("@EDGES")) {
                     	BTMState.addEdges(readMessage);
                     } else {
                     	if (D) Log.d(TAG, "received weird message:" + readMessage);

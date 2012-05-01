@@ -12,7 +12,7 @@
      distributed under the License is distributed on an "AS IS" BASIS,
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
-     limitations under the License.
+     limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dic.BTMesh"
@@ -57,11 +57,19 @@
             </intent-filter>
         </activity>
         <activity android:name=".BTFileManager" >
-        </activity>
             <intent-filter>
-                <action android:name="com.dic.BTMesh.processMessage" />
+                <action android:name="com.dic.BTMesh.filechooser" />
             </intent-filter>
-                <activity android:name=".FileChooser" >
+        </activity>
+
+        <intent-filter>
+            <action android:name="com.dic.BTMesh.processMessage" />
+        </intent-filter>
+
+        <activity android:name=".FileChooser" >
+            <intent-filter>
+                <action android:name="com.dic.BTMesh.filechooser" />
+            </intent-filter>
         </activity>
     </application>
 
