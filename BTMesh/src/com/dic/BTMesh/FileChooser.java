@@ -7,21 +7,30 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
-import com.dic.BTMesh.BTChat.BTChatListener;
-
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -30,25 +39,41 @@ import android.widget.Toast;
 public class FileChooser extends ListActivity {
 	private static final String TAG = "BTMeshFileChooser";
 	private static final boolean D = true;
-	
+
 	private BTFileListener BTMListener;
-    private BTMeshState BTMState;
-    private boolean listenerRegistered = false;
-    
+	private BTMeshState BTMState;
+	private boolean listenerRegistered = false;
+
 	private File currentDir;
 	private FileArrayAdapter adapter;
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		currentDir = new File("/sdcard/");
-		fill(currentDir);
+
+		refreshView();
 		BTMState = ((BTMeshState)getApplicationContext());
 		BTMListener = new BTFileListener();
-        if (!listenerRegistered) {
-            registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.filechooser"));
-            listenerRegistered = true;
-        }
-		
+		if (!listenerRegistered) {
+			registerReceiver(BTMListener, new IntentFilter("com.dic.BTMesh.filechooser"));
+			listenerRegistered = true;
+		}
+
+
+
+	}
+
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v,
+			ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.context_menu, menu);
+	}
+
+	// Refreshes the view
+	private void refreshView(){
+		currentDir = new File("/sdcard/");
+		fill(currentDir);
 	}
 	private void fill(File f)
 	{
@@ -83,6 +108,26 @@ public class FileChooser extends ListActivity {
 		adapter = new FileArrayAdapter(FileChooser.this, R.layout.file_view, dir);
 		this.setListAdapter(adapter);
 	}
+	private OnItemClickListener mDeviceClickListener = new OnItemClickListener() {
+		public void onItemClick(AdapterView<?> av, View v, int position, long id) {
+			if(D) Log.d(TAG, "ITem Clicked!");
+			finish();
+		}
+	};
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		switch (item.getItemId()) {
+		case R.id.broadcast:
+			//editNote(info.id);
+			return true;
+		case R.id.delete:
+			//deleteNote(info.id);
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
+	}
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		// TODO Auto-generated method stub
@@ -100,10 +145,17 @@ public class FileChooser extends ListActivity {
 			// this list all the files in a string
 			//onFileClickList(o, currentDir);
 			//this prompts it as a byte array;
-			writeFileAsByteArrayPrompt(readFileAsByteArray(o));
-			
+
+			//send info in readFileAsByteArray to Broadcast
+			registerForContextMenu( v );
+			openContextMenu( v );
+			//((AdapterView<ListAdapter>) v).setOnItemClickListener(mDeviceClickListener);
+			broadcastFileAsByteArrayAndPrompt(readFileAsByteArray(o));
+
 		}
 	}
+
+
 
 	/*
 	 * Got the file, let's do something with it
@@ -113,7 +165,8 @@ public class FileChooser extends ListActivity {
 	{
 		fileToStream(o);
 		// right now only tell you the file
-		Toast.makeText(this, "File Clicked: "+o.getName(), Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, "File Clicked: "+o.getName(), Toast.LENGTH_LONG).show();
+
 	}
 
 	/*
@@ -159,7 +212,7 @@ public class FileChooser extends ListActivity {
 		try {
 			// read this file into InputStream
 			InputStream inputStream = new FileInputStream(o.getPath());
-			writeFile(o);
+			checkFile(o);
 			// write the inputStream to a FileOutputStream
 			//OutputStream out = new FileOutputStream(new File("foodfood1"));
 
@@ -195,65 +248,72 @@ public class FileChooser extends ListActivity {
 			return null;
 		}
 	}
-	
+
 	public Option readFile(Option o) {
 		return o;
 	}
-	
+
 	/*
 	 * API
 	 * 
 	 * Convert file to byte array
 	 * 
 	 */
-	
+
 	public byte[] readFileAsByteArray(Option o) {
 		String sp = "@FILE";
 		//String sp = "BTMESHSUPERPOWERFULL";
 		String master = sp+o.getName() + sp + o.getData() + sp + o.getPath();
-		
-        byte[] byteArray = master.getBytes();
-        
-        //Initialize a BTMesh connection and broadcast
-        BTMeshState BTMState = ((BTMeshState)getApplicationContext());
-        BTMState.getService().write(byteArray);
-        
+
+		byte[] byteArray = master.getBytes();
+
+
+
 		return byteArray;
 	}
-	
+
 	/*
 	 * API
 	 * 
 	 * Convert byte array to file and write it
 	 * 
 	 */
-	
-	public void writeFileAsByteArray(byte[] byteArray) {
-		
+
+	public void writeFileFromByteArray(byte[] byteArray) {
+
 		String master = new String(byteArray);
 		//String sp = "BTMESHSUPERPOWERFULL";
+		checkFileFromString(master);
+
+	}
+
+	public void checkFileFromString(String master) {
 		String sp = "@FILE";
 		String[] tmp = master.split(sp);
-		
-		Option o = new Option(tmp[0],tmp[1],tmp[2]);
-		writeFile(o);
-			
+
+		Option o = new Option(tmp[1],tmp[2],tmp[3]);
+		checkFile(o);
+
 	}
-	
-	public void writeFileAsByteArrayPrompt(byte[] byteArray) {
-		
+
+	public void broadcastFileAsByteArrayAndPrompt(byte[] byteArray) {
+
 		String master = byteArray.toString();
 		String sp = "BTMESHSUPERPOWERFULL";
-		
-        master = new String(byteArray);
-        
-		Toast.makeText(this, master, Toast.LENGTH_SHORT).show();
-		
-		//String[] tmp = master.split(sp);
-		
+
+		master = new String(byteArray);
+
+
+		//Initialize a BTMesh connection and broadcast
+		BTMeshState BTMState = ((BTMeshState)getApplicationContext());
+		BTMState.getService().write(byteArray);
+
+		//Toast.makeText(this, master, Toast.LENGTH_SHORT).show();
+
+		//String[] tmp = master.split(sp);		
 		//Option o = new Option(tmp[0],tmp[1],tmp[2]);
 		//writeFile(o);
-			
+
 	}
 
 	/*
@@ -262,39 +322,81 @@ public class FileChooser extends ListActivity {
 	 * Write file
 	 * 
 	 */
-	private void writeFile(Option o){
-		try {
-			//SDcard is available
-			
-			String fileName = o.getName();
-			File f=new File("/sdcard/"+fileName);
-			if (!f.exists()) 
-			{
-				//File does not exists
-				f.createNewFile();
-			}
-			/*
-			//take your inputstream and write it to your file
-			OutputStream out;
 
-			out = new FileOutputStream(f);
-
-			byte buf[]=new byte[1024];
-			int len;
-			while((len=inputStream.read(buf))>0)
-				out.write(buf,0,len);
-			out.close();*/
-			System.out.println("\nFile is created...................................");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	Option tempO;
+	File tmpf;
+	HashSet<String> allFiles = new HashSet<String>();
+	File f;
+	String fileName;
+	private void checkFile(Option o){
+		//SDcard is available
+		tempO = o;
+		if(D) Log.d(TAG, "WRITING THE FILE IN WRITE FILE FUNCTION");
+		fileName = o.getName();
+		f=new File("/sdcard/"+fileName);
+		boolean passOnFile = false;
+		if (!allFiles.contains(fileName)){
+			passOnFile = true;		
 		}
+		allFiles.add(fileName);
+
+		if (!f.exists()) 
+		{
+			if(D) Log.d(TAG, "FILE DOESNT EXIST GONNA WRITE FILE");
+			if(D) Log.d(TAG, "FILE PATH AND NAME IS"+"/sdcard/"+fileName);
+			//File does not exists
+
+			//f.createNewFile();
+
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setMessage("Do you want this " +fileName+" file?")
+			.setCancelable(false)
+			.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					//ACTIVITY.this.finish();
+
+					//makeFile(tempO);
+					f=new File("/sdcard/"+fileName);
+					try {
+						f.createNewFile();
+					} catch (IOException e) {
+						if(D) Log.d(TAG, "DIDNT WORK!! FILE PATH AND NAME IS"+"/sdcard/"+fileName);
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			})
+			.setNegativeButton("No", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					dialog.cancel();
+				}
+			});
+			AlertDialog alert = builder.create();
+			alert.show();
+
+			if (passOnFile){
+				broadcastFileAsByteArrayAndPrompt(readFileAsByteArray(o));
+			}
+		} else {
+			if(D) Log.d(TAG, "FILE PATH AND NAME IS"+"/sdcard/"+fileName);
+			if(D) Log.d(TAG, "FILE DOES EXIST NOT DOING ANYTHING");
+
+		}
+		/*
+		//take your inputstream and write it to your file
+		OutputStream out;
+
+		out = new FileOutputStream(f);
+
+		byte buf[]=new byte[1024];
+		int len;
+		while((len=inputStream.read(buf))>0)
+			out.write(buf,0,len);
+		out.close();*/
+		System.out.println("\nFile is created...................................");
 	}
 
-	
+
 	/*
 	 * API
 	 * 
@@ -356,20 +458,55 @@ public class FileChooser extends ListActivity {
 			return null;
 		}
 	}
-	
-    protected class BTFileListener extends BroadcastReceiver {
+	private void makeFile(Option tempO){
+		final String TESTSTRING = new String(tempO.getData()); 
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (D) Log.d(TAG, "receive " + intent.getAction());
-            if (intent.getAction().equals("com.dic.BTMesh.filechooser")) {
-                if(D) Log.d(TAG, "BTFile received file");
-            	String messages = intent.getStringExtra("messages");
-            	//addMessagesToConvo(messages);
-                // Do something
-            }
-        }
-    }
+		// ##### Write a file to the disk #####
+		/* We have to use the openFileOutput()-method 
+		 * the ActivityContext provides, to
+		 * protect your file from others and 
+		 * This is done for security-reasons. 
+		 * We chose MODE_WORLD_READABLE, because
+		 *  we have nothing to hide in our file */		
+		FileOutputStream fOut;
+		try {
+			fOut = openFileOutput(tempO.getName(), 
+					MODE_WORLD_READABLE);
+
+			OutputStreamWriter osw = new OutputStreamWriter(fOut);	
+
+			// Write the string to the file
+			osw.write(TESTSTRING);
+			/* ensure that everything is 
+			 * really written out and close */
+			osw.flush();
+			osw.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	protected class BTFileListener extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (D) Log.d(TAG, "receive " + intent.getAction());
+			if (intent.getAction().equals("com.dic.BTMesh.filechooser")) {
+				if(D) Log.d(TAG, "BTFile received file");
+				String messages = intent.getStringExtra("messages");
+				if(D) Log.d(TAG, messages);      	
+
+				checkFileFromString(messages);
+				//addMessagesToConvo(messages);
+				// Do something
+				refreshView();
+			}
+		}
+	}
 
 
 }

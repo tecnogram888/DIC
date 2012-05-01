@@ -41,4 +41,9 @@
     <string name="discoverable">Make discoverable</string>
     <string name="toggleautoconnect">Toggle AutoConnect</string>
     <string name="switchcmview">Global/Local</string>
+    
+        <!-- Context Menu -->
+    <string name="broadcast">broadcast</string>
+    <string name="delete">delete</string>
+
 </resources>

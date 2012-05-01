@@ -209,6 +209,7 @@ public class BTMesh extends TabActivity {
                     	Intent i2 = new Intent();
                     	i2.setAction("com.dic.BTMesh.filechooser");
                     	i2.putExtra("messages", readMessage);
+                    	if (D) Log.d(TAG, "@FILE intent sent:" + readMessage);
                     	sendBroadcast(i2);
                     } 
                     
